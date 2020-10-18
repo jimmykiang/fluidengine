@@ -18,11 +18,13 @@ func NewFrame() *Frame {
 	return frame
 }
 
+// timeInSeconds returns the elapsed time in seconds.
 func (frame *Frame) timeInSeconds() float64 {
 
 	return float64(frame.index) * frame.timeIntervalInSeconds
 }
 
+// advance a single frame.
 func (frame *Frame) advance() {
 
 	frame.index++
