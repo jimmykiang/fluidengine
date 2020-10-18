@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -9,12 +10,14 @@ import (
 	"github.com/sbinet/npyio"
 )
 
+// Test npyio library writing go slice data to npy format.
 func TestWriteToNpyFile(t *testing.T) {
 
 	path, err := os.Getwd()
-	const conf = "animation/data.#line2,0000,x.npy"
+	const conf = "animation/testwritetonpyfile"
+	fileName := fmt.Sprintf("a data.#line2,%04d,x.npy", 1)
 
-	f, err := os.Create(filepath.Join(path, conf))
+	f, err := os.Create(filepath.Join(path, conf, fileName))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,9 +35,11 @@ func TestWriteToNpyFile(t *testing.T) {
 	}
 
 	path1, err1 := os.Getwd()
-	const conf1 = "animation/data.#line2,0000,y.npy"
+	const conf1 = "animation/testwritetonpyfile"
 
-	f1, err1 := os.Create(filepath.Join(path1, conf1))
+	fileName1 := fmt.Sprintf("a data.#line2,%04d,y.npy", 1)
+
+	f1, err1 := os.Create(filepath.Join(path1, conf1, fileName1))
 	if err1 != nil {
 		log.Fatal(err1)
 	}
@@ -50,4 +55,8 @@ func TestWriteToNpyFile(t *testing.T) {
 	if err1 != nil {
 		log.Fatalf("error closing file: %v\n", err1)
 	}
+}
+
+func TestSineAnimation(t *testing.T) {
+
 }
