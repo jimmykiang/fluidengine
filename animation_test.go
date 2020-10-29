@@ -100,14 +100,18 @@ func TestSimpleMassSpringAnimation(t *testing.T) {
 	var y []float64
 
 	anim := NewSimpleMassSpringAnimation()
-	anim.makeChain(20)
-	anim.wind = NewVector(30.0, 50.0, 0.0)
-	anim.constraints = append(anim.constraints, &Constraint{0, NewVector(0, 0, 0), NewVector(0, 0, 0)})
+	anim.makeChain(80)
+	anim.wind = NewVector(-80.0, 190.0, 0.0)
+	anim.constraints = append(anim.constraints, &Constraint{0, NewVector(0, 20, 0), NewVector(0, 0, 0)})
 	anim.exportStates(&x, &y)
 
 	frame := NewFrame()
 
-	for ; frame.index < 960; frame.advance() {
+	for ; frame.index < 2000; frame.advance() {
+		if frame.index > 1000 {
+
+			anim.wind = NewVector(40.0, 30.0, 0.0)
+		}
 		anim.onUpdate(frame)
 		anim.exportStates(&x, &y)
 

@@ -93,7 +93,7 @@ func (anim *SimpleMassSpringAnimation) makeChain(numberOfPoints int) {
 
 	for i := 0; i < numberOfPoints; i++ {
 
-		anim.positions[i] = NewVector(-float64(i), 0, 0)
+		anim.positions[i] = NewVector(-float64(i), 20, 0)
 	}
 
 	for i := 0; i < numberOfEdges; i++ {
