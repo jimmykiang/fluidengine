@@ -93,3 +93,33 @@ func TestSineAnimation(t *testing.T) {
 	saveNpy(path, conf, "data.#line2,x.npy", resultsX, frame)
 	saveNpy(path, conf, "data.#line2,y.npy", resultsY, frame)
 }
+
+func TestSimpleMassSpringAnimation(t *testing.T) {
+
+	var x []float64
+	var y []float64
+
+	anim := NewSimpleMassSpringAnimation()
+	anim.makeChain(20)
+	anim.wind = NewVector(30.0, 50.0, 0.0)
+	anim.constraints = append(anim.constraints, &Constraint{0, NewVector(0, 0, 0), NewVector(0, 0, 0)})
+	anim.exportStates(&x, &y)
+
+	frame := NewFrame()
+
+	for ; frame.index < 960; frame.advance() {
+		anim.onUpdate(frame)
+		anim.exportStates(&x, &y)
+
+		path, err := os.Getwd()
+		if err != nil {
+			log.Fatal(err)
+		}
+		const conf = "animation/simpleMassSpringAnimation"
+		fileNameX := fmt.Sprintf("data.#line2,%04d,x.npy", frame.index)
+		fileNameY := fmt.Sprintf("data.#line2,%04d,y.npy", frame.index)
+
+		saveNpy(path, conf, fileNameX, x, frame)
+		saveNpy(path, conf, fileNameY, y, frame)
+	}
+}

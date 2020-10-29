@@ -17,7 +17,8 @@ func saveNpy(path, conf, fileName string, results []float64, frame *Frame) {
 	defer f.Close()
 
 	// write to .npy with the history of past values.
-	m := results[:frame.index]
+	// m := results[:frame.index]
+	m := results
 	if frame.index == 0 {
 
 		// must always pass a slice with the single element of interest when index == 0.

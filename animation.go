@@ -58,7 +58,16 @@ type SimpleMassSpringAnimation struct {
 
 // NewSimpleMassSpringAnimation creates and returns a new SimpleMassSpringAnimation reference.
 func NewSimpleMassSpringAnimation() *SimpleMassSpringAnimation {
-	simpleMassSpringAnimation := &SimpleMassSpringAnimation{}
+	simpleMassSpringAnimation := &SimpleMassSpringAnimation{
+		mass:                   1.0,
+		gravity:                NewVector(0.0, -9.8, 0.0),
+		stiffness:              500.0,
+		restLength:             1.0,
+		dampingCoefficient:     1.0,
+		dragCoefficient:        0.1,
+		floorPositionY:         -7.0,
+		restitutionCoefficient: 0.3,
+	}
 
 	return simpleMassSpringAnimation
 }
@@ -74,6 +83,12 @@ func (anim *SimpleMassSpringAnimation) makeChain(numberOfPoints int) {
 	anim.positions = make([]*Vector3D, numberOfPoints)
 	anim.velocities = make([]*Vector3D, numberOfPoints)
 	anim.forces = make([]*Vector3D, numberOfPoints)
+
+	for x := 0; x < numberOfPoints; x++ {
+		anim.velocities[x] = NewVector(0, 0, 0)
+		anim.forces[x] = NewVector(0, 0, 0)
+	}
+
 	anim.edges = make([]*Edge, numberOfEdges)
 
 	for i := 0; i < numberOfPoints; i++ {
@@ -88,14 +103,15 @@ func (anim *SimpleMassSpringAnimation) makeChain(numberOfPoints int) {
 }
 
 // exportStates initializes the data by chaining the points horizontally.
-func (anim *SimpleMassSpringAnimation) exportStates(x []float64, y []float64) {
-	x = make([]float64, len(anim.positions))
-	y = make([]float64, len(anim.positions))
+func (anim *SimpleMassSpringAnimation) exportStates(x *[]float64, y *[]float64) {
+
+	*x = make([]float64, len(anim.positions))
+	*y = make([]float64, len(anim.positions))
 
 	for i := 0; i < len(anim.positions); i++ {
 
-		x[i] = anim.positions[i].x
-		y[i] = anim.positions[i].y
+		(*x)[i] = anim.positions[i].x
+		(*y)[i] = anim.positions[i].y
 	}
 }
 
