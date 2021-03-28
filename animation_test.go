@@ -100,16 +100,19 @@ func TestSimpleMassSpringAnimation(t *testing.T) {
 	var y []float64
 
 	anim := NewSimpleMassSpringAnimation()
-	anim.makeChain(80)
+	anim.makeChain(10)
 	anim.wind = NewVector(-80.0, 190.0, 0.0)
-	anim.constraints = append(anim.constraints, &Constraint{0, NewVector(0, 20, 0), NewVector(0, 0, 0)})
+	// Set constraint for pointIndex 13
+	// and initial fixed position for "consistency" at x = -5 (because makeChain starts with index == 0 )
+	// and avoid wipLash caused spring calculation in the simulation.
+	anim.constraints = append(anim.constraints, &Constraint{6, NewVector(-5, 20, 0), NewVector(0, 0, 0)})
 	anim.exportStates(&x, &y)
 
 	frame := NewFrame()
 
-	for ; frame.index < 2000; frame.advance() {
-		if frame.index > 1000 {
+	for ; frame.index < 1000; frame.advance() {
 
+		if frame.index > 500 {
 			anim.wind = NewVector(40.0, 30.0, 0.0)
 		}
 		anim.onUpdate(frame)

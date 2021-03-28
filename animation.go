@@ -61,7 +61,7 @@ func NewSimpleMassSpringAnimation() *SimpleMassSpringAnimation {
 	simpleMassSpringAnimation := &SimpleMassSpringAnimation{
 		mass:                   1.0,
 		gravity:                NewVector(0.0, -9.8, 0.0),
-		stiffness:              500.0,
+		stiffness:              100.0,
 		restLength:             1.0,
 		dampingCoefficient:     1.0,
 		dragCoefficient:        0.1,
@@ -151,7 +151,7 @@ func (anim *SimpleMassSpringAnimation) onUpdate(frame *Frame) {
 
 		if distance > 0.0 {
 
-			force := r.Normalize().Multiply((-anim.stiffness * (distance - anim.restLength)))
+			force := r.Normalize().Multiply(-anim.stiffness * (distance - anim.restLength))
 			anim.forces[pointIndex0] = anim.forces[pointIndex0].Add(force)
 			anim.forces[pointIndex1] = anim.forces[pointIndex1].Substract(force)
 		}
@@ -193,7 +193,11 @@ func (anim *SimpleMassSpringAnimation) onUpdate(frame *Frame) {
 	for i := 0; i < len(anim.constraints); i++ {
 
 		pointIndex := anim.constraints[i].pointIndex
-		anim.positions[pointIndex] = anim.constraints[pointIndex].fixedPosition
-		anim.velocities[pointIndex] = anim.constraints[pointIndex].fixedVelocity
+		//anim.positions[pointIndex] = anim.constraints[pointIndex].fixedPosition
+		//anim.velocities[pointIndex] = anim.constraints[pointIndex].fixedVelocity
+
+		// Fix position + velocity based one the constraint[0].
+		anim.positions[pointIndex] = anim.constraints[0].fixedPosition
+		anim.velocities[pointIndex] = anim.constraints[0].fixedVelocity
 	}
 }
