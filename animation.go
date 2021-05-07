@@ -7,6 +7,7 @@ type Animation interface {
 
 	// onUpdate should be overriden by downstream structs and implement its logic for updating the animation state.
 	onUpdate(*Frame)
+	initialize()
 }
 
 // SineAnimation contains the evaluated value for a typical sinusoid.

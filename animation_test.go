@@ -130,3 +130,48 @@ func TestSimpleMassSpringAnimation(t *testing.T) {
 		saveNpy(path, conf, fileNameY, y, frame)
 	}
 }
+
+func TestParticleSystemSolver3HalfBounce(t *testing.T) {
+
+	// Normal vector.
+	normal1 := NewVector(0, 1, 0)
+	// Point vector.
+	point1 := NewVector(0, 0, 0)
+
+	plane := NewPlane3D(normal1, point1)
+	collider := NewRigidBodyCollider3(plane)
+	solver := NewParticleSystemSolver3()
+
+	solver.SetCollider(collider)
+	solver.SetDragCoefficient(0.0)
+	solver.SetRestitutionCoefficient(0.5)
+
+	particles := solver.ParticleSystemData()
+	particles.addParticle(NewVector(0, 3, 0), NewVector(1, 0, 0), NewVector(0, 0, 0))
+
+	x := make([]float64, 1000)
+	y := make([]float64, 1000)
+
+	frame := NewFrame()
+	frame.timeIntervalInSeconds = 1.0 / 300.0
+
+	for ; frame.index < 1000; frame.advance() {
+
+		fmt.Println("Frame index:", frame.index)
+		solver.onUpdate(frame)
+
+		x[frame.index] = particles.positions()[0].x
+		y[frame.index] = particles.positions()[0].y
+
+		path, err := os.Getwd()
+		if err != nil {
+			log.Fatal(err)
+		}
+		const conf = "animation/HalfBounce"
+		fileNameX := fmt.Sprintf("data.#line2,%04d,x.npy", frame.index)
+		fileNameY := fmt.Sprintf("data.#line2,%04d,y.npy", frame.index)
+
+		saveNpy(path, conf, fileNameX, x, frame)
+		saveNpy(path, conf, fileNameY, y, frame)
+	}
+}

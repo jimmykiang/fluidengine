@@ -2,7 +2,7 @@ package main
 
 import "math"
 
-// Vector3D defines simple 3-D vector data.
+// Vector3D defines a simple 3-D vector data.
 type Vector3D struct {
 	x, y, z float64
 }
@@ -65,4 +65,26 @@ func (v *Vector3D) Normalize() *Vector3D {
 		return v
 	}
 	return NewVector(v.x/length, v.y/length, v.z/length)
+}
+
+// DotProduct from 2 Vector3D.
+func (v *Vector3D) DotProduct(o *Vector3D) float64 {
+	return ((v.x * o.x) + (v.y * o.y) + (v.z * o.z))
+}
+
+// CrossProduct from 2 vectors (tuple with w == 0).
+func (v *Vector3D) CrossProduct(o *Vector3D) *Vector3D {
+	return NewVector((*v).y*o.z-v.z*o.y, v.z*o.x-v.x*o.z, v.x*o.y-v.y*o.x)
+}
+
+// Magnitude of a vector
+func (v *Vector3D) LengthSquared() float64 {
+	return math.Sqrt(square(v.x) + square(v.y) + square(v.z))
+}
+
+// Set the value of the current Vector3D with the new value from another Vector3D.
+func (v *Vector3D) Set(i *Vector3D) {
+	v.x = i.x
+	v.y = i.y
+	v.z = i.z
 }
