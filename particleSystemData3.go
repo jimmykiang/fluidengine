@@ -70,6 +70,8 @@ func (p *ParticleSystemData3) addParticles(newPositions, newVelocities, newForce
 	var newNumberOfParticles int64 = oldNumberOfParticles + int64(len(newPositions))
 	(*p).numberOfParticles = newNumberOfParticles
 
+	p.resize(newNumberOfParticles)
+
 	pos := (*p).positions()
 	vel := (*p).velocities()
 	frc := (*p).forces()
@@ -115,3 +117,18 @@ func (p *ParticleSystemData3) Mass() float64 {
 
 	return (*p).mass
 }
+
+func (p *ParticleSystemData3) resize(newNumberOfParticles int64) {
+
+	for idx, _ :=range p.scalarDataList{
+		for i:=int64(0); i<newNumberOfParticles-1; i++ {
+			p.scalarDataList[idx] = append(p.scalarDataList[idx], 0)
+		}
+	}
+
+	for idx, _ :=range p.vectorDataList{
+
+		for i:=int64(0); i<newNumberOfParticles-1; i++ {
+			p.vectorDataList[idx] = append(p.vectorDataList[idx], NewVector(0, 0, 0))
+		}
+	}}

@@ -5,11 +5,11 @@ import "math"
 // RigidBodyCollider3 implements 3-D rigid body collider. The collider can only take
 // rigid body motion with linear and rotational velocities.
 type RigidBodyCollider3 struct {
-	surface           *Plane3D
-	linearVelocity    *Vector3D
-	angularVelocity   *Vector3D
-	frictionCoeffient float64
-	onUpdateCallback  OnBeginUpdateCallback
+	surface                  *Plane3D
+	linearVelocity           *Vector3D
+	angularVelocity          *Vector3D
+	frictionCoefficient      float64
+	onUpdateCallbackCollider OnBeginUpdateCallbackCollider
 }
 
 // ColliderQueryResult is an internal query result structure.
@@ -74,7 +74,7 @@ func (c RigidBodyCollider3) resolveCollision(
 
 			if relativeVelT.LengthSquared() > 0.0 {
 
-				a := c.frictionCoeffient * deltaRelativeVelN.Length()/relativeVelT.Length()
+				a := c.frictionCoefficient * deltaRelativeVelN.Length()/relativeVelT.Length()
 				frictionScale := math.Max(1-a, 0)
 				relativeVelT = relativeVelT.Multiply(frictionScale)
 
@@ -115,10 +115,10 @@ func (c RigidBodyCollider3) velocityAt(point *Vector3D) *Vector3D {
 	return c.linearVelocity.Add(a)
 }
 
-// OnBeginUpdateCallback is a brief Callback function signature type for update calls.
+// OnBeginUpdateCallbackCollider is a brief Callback function signature type for update calls.
 // This type of callback function will take the collider pointer, current
 // time, and time interval in seconds.
-type OnBeginUpdateCallback func(
+type OnBeginUpdateCallbackCollider func(
 	rigidBodyCollider *RigidBodyCollider3,
 	currentTime float64,
 	timeInterval float64,
@@ -126,10 +126,10 @@ type OnBeginUpdateCallback func(
 
 func NewRigidBodyCollider3(surface *Plane3D) *RigidBodyCollider3 {
 	return &RigidBodyCollider3{
-		surface:           surface,
-		linearVelocity:    NewVector(0, 0, 0),
-		angularVelocity:   NewVector(0, 0, 0),
-		frictionCoeffient: 0,
-		onUpdateCallback:  nil,
+		surface:                  surface,
+		linearVelocity:           NewVector(0, 0, 0),
+		angularVelocity:          NewVector(0, 0, 0),
+		frictionCoefficient:      0,
+		onUpdateCallbackCollider: nil,
 	}
 }

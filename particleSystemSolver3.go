@@ -1,5 +1,11 @@
 package main
 
+import (
+	"fmt"
+	"log"
+	"os"
+)
+
 // ParticleSystemSolver3 is a Basic 3-D particle system solver.
 //
 // This class implements basic particle system solver. It includes gravity,
@@ -21,7 +27,7 @@ type ParticleSystemSolver3 struct {
 	newVelocities             []*Vector3D
 	collider                  *RigidBodyCollider3
 	emitter                   *PointParticleEmitter3
-	wind                      *Vector3D
+	wind                      *ConstantVectorField3
 }
 
 func (p *ParticleSystemSolver3) ParticleSystemData() *ParticleSystemData3 {
@@ -52,6 +58,11 @@ func (p *ParticleSystemSolver3) SetCollider(collider *RigidBodyCollider3) {
 	p.collider = collider
 }
 
+func (p *ParticleSystemSolver3) SetEmitter(emitter *PointParticleEmitter3) {
+	p.emitter = emitter
+	emitter.setTarget(p.particleSystemData)
+}
+
 func NewParticleSystemSolver3() *ParticleSystemSolver3 {
 	newPositions := make([]*Vector3D, 0)
 	newPositions = append(newPositions, NewVector(0, 0, 0))
@@ -72,7 +83,7 @@ func NewParticleSystemSolver3() *ParticleSystemSolver3 {
 		newVelocities:             newVelocities,
 		collider:                  nil,
 		emitter:                   nil,
-		wind:                      NewVector(0, 0, 0),
+		wind:                      NewConstantVectorField3(),
 	}
 
 	p.currentFrame.index = -1
@@ -83,10 +94,10 @@ func NewParticleSystemSolver3() *ParticleSystemSolver3 {
 func (p *ParticleSystemSolver3) onUpdate(frame *Frame) {
 
 	//numberOfFrames := frame.index - p.currentFrame.index
-	numberOfFrames := 1
+	//numberOfFrames := 1
 
 	// Perform fixed time-stepping
-	for i := 0; i < numberOfFrames; i++ {
+	//for i := 0; i < numberOfFrames; i++ {
 
 		p.beginAdvanceTimeStep(frame.timeIntervalInSeconds)
 
@@ -97,10 +108,11 @@ func (p *ParticleSystemSolver3) onUpdate(frame *Frame) {
 
 		p.resolveCollision()
 
+		p.currentFrame = frame
+
 		// Not needed.
 		//p.endAdvanceTimeStep(frame.timeIntervalInSeconds)
-	}
-	//p.currentFrame = frame
+	//}
 }
 
 func (p *ParticleSystemSolver3) endAdvanceTimeStep(seconds float64) {
@@ -163,7 +175,7 @@ func (p *ParticleSystemSolver3) accumulateExternalForces() {
 		force := p.gravity.Multiply(mass)
 
 		// Wind forces.
-		relativeVel := velocities[i]
+		relativeVel := velocities[i].Substract(p.wind.value)
 		force.Add(relativeVel.Multiply(p.dragCoefficient))
 
 		forces[i] = forces[i].Add(force)
@@ -180,12 +192,16 @@ func (p *ParticleSystemSolver3) beginAdvanceTimeStep(timeStepInSeconds float64) 
 	}
 
 	// Update collider and emitter.
-	// Do nothing
+	// collider does nothing.
+
+	p.currentTime = float64(p.currentFrame.index) * p.currentFrame.timeIntervalInSeconds
+	p.emitter.update(p.currentTime, timeStepInSeconds)
 
 	// Allocate buffers.
-	// Do nothing
+	n := p.particleSystemData.numberOfParticles
+	p.resize(n)
 
-	_ = forces
+	p.currentTime += timeStepInSeconds
 }
 
 // initialize from the original code is only a call to onInitialize.
@@ -193,5 +209,49 @@ func (p *ParticleSystemSolver3) initialize() {
 
 	// When initializing the solver, update the collider and emitter state as
 	// well since they also affects the initial condition of the simulation.
+
+}
+
+func (p *ParticleSystemSolver3) setWind(wind *ConstantVectorField3) {
+
+	p.wind = wind
+}
+
+func (p *ParticleSystemSolver3) resize(size int64) {
+
+	for i := int64(0); i < size-1; i++ {
+		p.newPositions = append(p.newPositions, NewVector(0, 0, 0))
+		p.newVelocities = append(p.newVelocities, NewVector(0, 0, 0))
+	}
+
+}
+
+func (p *ParticleSystemSolver3) saveParticleDataXyUpdate(particles *ParticleSystemData3, frame *Frame) {
+
+	n := particles.numberOfParticles
+
+	x := make([]float64, 1000)
+	y := make([]float64, 1000)
+
+	//positions := particles.positions()
+
+	for i:=int64(0); i<n; i++{
+
+		x[i] = particles.positions()[i].x
+		y[i] = particles.positions()[i].y
+	}
+
+	path, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	const conf = "animation/Update"
+	fileNameX := fmt.Sprintf("data.#point2,%04d,x.npy", frame.index)
+	fileNameY := fmt.Sprintf("data.#point2,%04d,y.npy", frame.index)
+
+	saveNpy(path, conf, fileNameX, x, frame)
+	saveNpy(path, conf, fileNameY, y, frame)
+
+	_=n
 
 }

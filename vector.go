@@ -88,3 +88,24 @@ func (v *Vector3D) Set(i *Vector3D) {
 	v.y = i.y
 	v.z = i.z
 }
+
+// tangential returns the tangential vector for this vector.
+func (v *Vector3D) tangential() []*Vector3D{
+
+	t := make([]*Vector3D, 0)
+	var x *Vector3D
+	if math.Abs(v.y) > 0 || math.Abs(v.z) > 0 {
+
+		x = NewVector(1,0,0)
+	}else {
+
+		x = NewVector(0,1,0)
+	}
+	a := x.CrossProduct(v).Normalize()
+	b := v.CrossProduct(a)
+
+	t = append(t, a)
+	t = append(t, b)
+
+	return t
+}

@@ -84,14 +84,14 @@ func TestSineAnimation(t *testing.T) {
 		saveNpy(path, conf, fileNameY, resultsY, frame)
 	}
 
-	path, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-	const conf = "animation/sineanimation"
-
-	saveNpy(path, conf, "data.#line2,x.npy", resultsX, frame)
-	saveNpy(path, conf, "data.#line2,y.npy", resultsY, frame)
+	//path, err := os.Getwd()
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//const conf = "animation/sineanimation"
+	//
+	//saveNpy(path, conf, "data.#line2,x.npy", resultsX, frame)
+	//saveNpy(path, conf, "data.#line2,y.npy", resultsY, frame)
 }
 
 func TestSimpleMassSpringAnimation(t *testing.T) {
@@ -173,5 +173,42 @@ func TestParticleSystemSolver3HalfBounce(t *testing.T) {
 
 		saveNpy(path, conf, fileNameX, x, frame)
 		saveNpy(path, conf, fileNameY, y, frame)
+	}
+}
+
+func TestParticleSystemSolver3Update(t *testing.T) {
+
+	// Normal vector.
+	normal1 := NewVector(0, 1, 0)
+	// Point vector.
+	point1 := NewVector(0, 0, 0)
+	plane := NewPlane3D(normal1, point1)
+	collider := NewRigidBodyCollider3(plane)
+
+	wind := NewConstantVectorField3()
+	wind.withValue(NewVector(1,0,0))
+
+	emitter := NewPointParticleEmitter3()
+	emitter.withOrigin(NewVector(0,3,0))
+	emitter.withDirection(NewVector(0,1,0))
+	emitter.withSpeed(5)
+	emitter.withSpreadAngleInDegrees(45)
+	emitter.withMaxNumberOfNewParticlesPerSecond(300)
+
+	solver := NewParticleSystemSolver3()
+	solver.SetCollider(collider)
+	solver.SetEmitter(emitter)
+	solver.setWind(wind)
+	solver.SetDragCoefficient(0)
+	solver.SetRestitutionCoefficient(0.5)
+
+	frame := NewFrame()
+	frame.timeIntervalInSeconds = 1.0 / 60.0
+
+	for ; frame.index < 360; frame.advance() {
+		fmt.Println("Frame index:", frame.index)
+		solver.onUpdate(frame)
+
+		solver.saveParticleDataXyUpdate(solver.particleSystemData, frame)
 	}
 }
