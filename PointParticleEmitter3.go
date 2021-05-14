@@ -88,11 +88,13 @@ func (e *PointParticleEmitter3) onSetTarget(particles *ParticleSystemData3) {
 
 func (e *PointParticleEmitter3) update(currentTimeInSeconds float64, timeIntervalInSeconds float64) {
 
-	particles := e.particles
 
-	if particles == nil{
+
+	if e.particles == nil{
 		return
 	}
+
+	particles := e.particles
 
 	if e.numberOfEmittedParticles == 0{
 

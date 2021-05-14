@@ -141,10 +141,12 @@ func TestParticleSystemSolver3HalfBounce(t *testing.T) {
 	plane := NewPlane3D(normal1, point1)
 	collider := NewRigidBodyCollider3(plane)
 	solver := NewParticleSystemSolver3()
+	emitter := NewPointParticleEmitter3()
 
 	solver.SetCollider(collider)
 	solver.SetDragCoefficient(0.0)
 	solver.SetRestitutionCoefficient(0.5)
+	solver.SetEmitter(emitter)
 
 	particles := solver.ParticleSystemData()
 	particles.addParticle(NewVector(0, 3, 0), NewVector(1, 0, 0), NewVector(0, 0, 0))
@@ -186,11 +188,11 @@ func TestParticleSystemSolver3Update(t *testing.T) {
 	collider := NewRigidBodyCollider3(plane)
 
 	wind := NewConstantVectorField3()
-	wind.withValue(NewVector(1,0,0))
+	wind.withValue(NewVector(1, 0, 0))
 
 	emitter := NewPointParticleEmitter3()
-	emitter.withOrigin(NewVector(0,3,0))
-	emitter.withDirection(NewVector(0,1,0))
+	emitter.withOrigin(NewVector(0, 3, 0))
+	emitter.withDirection(NewVector(-1, 1, 0))
 	emitter.withSpeed(5)
 	emitter.withSpreadAngleInDegrees(45)
 	emitter.withMaxNumberOfNewParticlesPerSecond(300)
@@ -205,7 +207,26 @@ func TestParticleSystemSolver3Update(t *testing.T) {
 	frame := NewFrame()
 	frame.timeIntervalInSeconds = 1.0 / 60.0
 
-	for ; frame.index < 360; frame.advance() {
+	ix := float64(-1)
+	iy := float64(1)
+
+	for ; frame.index < 500; frame.advance() {
+
+		emitter.withDirection(NewVector(ix, iy, 0))
+
+		// Some random wind
+		//if frame.index < 200 {
+		//	ix += 0.01
+		//
+		//}
+		//if frame.index == 100 {
+		//	iy =0
+		//}
+		//if frame.index > 200 {
+		//	ix -= 0.04
+		//	iy += 0.05
+		//}
+
 		fmt.Println("Frame index:", frame.index)
 		solver.onUpdate(frame)
 

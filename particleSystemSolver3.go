@@ -230,8 +230,8 @@ func (p *ParticleSystemSolver3) saveParticleDataXyUpdate(particles *ParticleSyst
 
 	n := particles.numberOfParticles
 
-	x := make([]float64, 1000)
-	y := make([]float64, 1000)
+	x := make([]float64, n)
+	y := make([]float64, n)
 
 	//positions := particles.positions()
 
