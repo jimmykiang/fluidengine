@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 )
 
 // ParticleSystemSolver3 is a Basic 3-D particle system solver.
@@ -99,19 +100,20 @@ func (p *ParticleSystemSolver3) onUpdate(frame *Frame) {
 	// Perform fixed time-stepping
 	//for i := 0; i < numberOfFrames; i++ {
 
-		p.beginAdvanceTimeStep(frame.timeIntervalInSeconds)
+	p.beginAdvanceTimeStep(frame.timeIntervalInSeconds)
 
-		// Add external forces.
-		p.accumulateExternalForces()
+	// Add external forces.
+	p.accumulateExternalForces()
 
-		p.timeIntegration(frame.timeIntervalInSeconds)
+	//p.timeIntegration(frame.timeIntervalInSeconds)
+	p.timeIntegrationMT(frame.timeIntervalInSeconds)
 
-		p.resolveCollision()
+	p.resolveCollision()
 
-		p.currentFrame = frame
+	p.currentFrame = frame
 
-		// Not needed.
-		//p.endAdvanceTimeStep(frame.timeIntervalInSeconds)
+	// Not needed.
+	//p.endAdvanceTimeStep(frame.timeIntervalInSeconds)
 	//}
 }
 
@@ -133,6 +135,7 @@ func (p *ParticleSystemSolver3) resolveCollision() {
 	}
 }
 
+// singleThread timeIntegration
 func (p *ParticleSystemSolver3) timeIntegration(timeStepsInSeconds float64) {
 
 	n := p.particleSystemData.numberOfParticles
@@ -161,6 +164,77 @@ func (p *ParticleSystemSolver3) timeIntegration(timeStepsInSeconds float64) {
 		p.particleSystemData.vectorDataList[p.particleSystemData.positionIdx][i] = newPosition
 		//(*p.particleSystemData.vectorDataList[p.particleSystemData.positionIdx][i]).Set(newPosition)
 	}
+}
+
+// mtResult collects the information from the worker threads for timeIntegrationMT.
+type mtResult struct {
+	newVelocity *Vector3D
+	newPosition *Vector3D
+}
+
+// multiThread timeIntegration
+func (p *ParticleSystemSolver3) timeIntegrationMT(timeStepsInSeconds float64) {
+
+	n := p.particleSystemData.numberOfParticles
+
+	threadSize := 15
+	jobs := make(chan int64, n)
+	results := make(chan *mtResult, n)
+	var wg sync.WaitGroup
+
+	for worker := 1; worker <= threadSize; worker++ {
+		wg.Add(1)
+
+		go func(jobs <-chan int64, results chan<- *mtResult) {
+			defer wg.Done()
+
+			for i := range jobs {
+				forces := p.particleSystemData.forces()
+				velocities := p.particleSystemData.velocities()
+				positions := p.particleSystemData.positions()
+				mass := p.particleSystemData.Mass()
+
+				// Integrate velocity first.
+				newVelocity := p.newVelocities[i]
+				forceMultiply := forces[i].Multiply(timeStepsInSeconds)
+				forceMultiplyDivide := forceMultiply.Divide(mass)
+				newVelocity = velocities[i].Add(forceMultiplyDivide)
+				//p.newVelocities[i] = newVelocity
+				//p.particleSystemData.vectorDataList[p.particleSystemData.velocityIdx][i] = newVelocity
+
+				// Integrate position.
+				newPosition := p.newPositions[i]
+				newVelocityMultiply := newVelocity.Multiply(timeStepsInSeconds)
+				newPosition = positions[i].Add(newVelocityMultiply)
+				//p.newPositions[i] = newPosition
+				//p.particleSystemData.vectorDataList[p.particleSystemData.positionIdx][i] = newPosition
+
+				results <- &mtResult{
+					newVelocity: newVelocity,
+					newPosition: newPosition,
+				}
+			}
+		}(jobs, results)
+	}
+
+	for y := int64(0); y < n; y++ {
+
+		jobs <- y
+	}
+	close(jobs)
+
+	for a := int64(0); a < n; a++ {
+
+		resultStruct := <-results
+
+		p.newVelocities[a] = resultStruct.newVelocity
+		p.particleSystemData.vectorDataList[p.particleSystemData.velocityIdx][a] = resultStruct.newVelocity
+
+		p.newPositions[a] = resultStruct.newPosition
+		p.particleSystemData.vectorDataList[p.particleSystemData.positionIdx][a] = resultStruct.newPosition
+	}
+
+	wg.Wait()
 }
 
 func (p *ParticleSystemSolver3) accumulateExternalForces() {
@@ -235,7 +309,7 @@ func (p *ParticleSystemSolver3) saveParticleDataXyUpdate(particles *ParticleSyst
 
 	//positions := particles.positions()
 
-	for i:=int64(0); i<n; i++{
+	for i := int64(0); i < n; i++ {
 
 		x[i] = particles.positions()[i].x
 		y[i] = particles.positions()[i].y
@@ -252,6 +326,6 @@ func (p *ParticleSystemSolver3) saveParticleDataXyUpdate(particles *ParticleSyst
 	saveNpy(path, conf, fileNameX, x, frame)
 	saveNpy(path, conf, fileNameY, y, frame)
 
-	_=n
+	_ = n
 
 }
