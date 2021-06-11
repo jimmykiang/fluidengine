@@ -329,3 +329,8 @@ func (p *ParticleSystemSolver3) saveParticleDataXyUpdate(particles *ParticleSyst
 	_ = n
 
 }
+
+func (p *ParticleSystemSolver3) setIsUsingFixedSubTimeSteps(isUsing bool) {
+
+	p.isUsingFixedSubTimeSteps = isUsing
+}

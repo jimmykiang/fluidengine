@@ -5,4 +5,8 @@ const (
 	kDefaultHashGridResolution float64 = 64.0
 	kGravity                   float64 = -9.8
 	kZeroSize                  float64 = 0
+	kWaterDensity              float64 = 1000
+
+	// Double-type pi.
+	kPiD float64 = 3.14159265358979323846264338327950288
 )

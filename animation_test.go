@@ -233,3 +233,22 @@ func TestParticleSystemSolver3Update(t *testing.T) {
 		solver.saveParticleDataXyUpdate(solver.particleSystemData, frame)
 	}
 }
+
+func TestSphSolver2WaterDrop(t *testing.T) {
+
+	targetSpacing := 0.02
+	domain := NewBoundingBox2D(NewVector(0, 0, 0), NewVector(1, 2, 0))
+
+	// Initialize solvers.
+	solver := NewSphSolver2()
+	solver.setPseudoViscosityCoefficient(0)
+
+	particles := solver.particleSystemData
+	particles.setTargetDensity(1000)
+	particles.setTargetSpacing(targetSpacing)
+
+	// Initialize source.
+	surfaceSet := NewImplicitSurfaceSet2()
+
+	_, _, _, _, _ = targetSpacing, domain, solver, particles, surfaceSet
+}

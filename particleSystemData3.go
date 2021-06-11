@@ -1,5 +1,7 @@
 package main
 
+import "math"
+
 // ParticleSystemData3 is the key data structure for storing particle system data. A
 // single particle has position, velocity, and force attributes by default. But
 // it can also have additional custom scalar or vector attributes.
@@ -51,6 +53,14 @@ func (p *ParticleSystemData3) addVectorData() int64 {
 
 }
 
+func (p *ParticleSystemData3) addScalarData() int64 {
+
+	attrIdx := len((*p).scalarDataList)
+	(*p).scalarDataList = append((*p).scalarDataList, []float64{0})
+	return int64(attrIdx)
+
+}
+
 func (p *ParticleSystemData3) addParticle(newPosition, newVelocity, newForce *Vector3D) {
 
 	newPositions := make([]*Vector3D, 0)
@@ -76,26 +86,26 @@ func (p *ParticleSystemData3) addParticles(newPositions, newVelocities, newForce
 	vel := (*p).velocities()
 	frc := (*p).forces()
 
-	if(len(newPositions)) > 0 {
+	if (len(newPositions)) > 0 {
 		for i := 0; i < len(newPositions); i++ {
 
 			pos[int64(i)+oldNumberOfParticles] = newPositions[i]
 		}
 	}
 
-	if(len(newVelocities)) > 0 {
+	if (len(newVelocities)) > 0 {
 		for i := 0; i < len(newPositions); i++ {
 
 			vel[int64(i)+oldNumberOfParticles] = newVelocities[i]
 		}
 	}
 
-		if(len(newPositions)) > 0 {
-			for i := 0; i < len(newForces); i++ {
+	if (len(newPositions)) > 0 {
+		for i := 0; i < len(newForces); i++ {
 
-				frc[int64(i)+oldNumberOfParticles] = newForces[i]
-			}
+			frc[int64(i)+oldNumberOfParticles] = newForces[i]
 		}
+	}
 }
 
 func (p *ParticleSystemData3) positions() []*Vector3D {
@@ -118,17 +128,28 @@ func (p *ParticleSystemData3) Mass() float64 {
 	return (*p).mass
 }
 
+func (p *ParticleSystemData3) setMass(newMass float64) {
+
+	(*p).mass = math.Max(newMass, 0)
+}
+
 func (p *ParticleSystemData3) resize(newNumberOfParticles int64) {
 
-	for idx, _ :=range p.scalarDataList{
-		for i:=int64(0); i<newNumberOfParticles-1; i++ {
+	for idx, _ := range p.scalarDataList {
+		for i := int64(0); i < newNumberOfParticles-1; i++ {
 			p.scalarDataList[idx] = append(p.scalarDataList[idx], 0)
 		}
 	}
 
-	for idx, _ :=range p.vectorDataList{
+	for idx, _ := range p.vectorDataList {
 
-		for i:=int64(0); i<newNumberOfParticles-1; i++ {
+		for i := int64(0); i < newNumberOfParticles-1; i++ {
 			p.vectorDataList[idx] = append(p.vectorDataList[idx], NewVector(0, 0, 0))
 		}
-	}}
+	}
+}
+
+func (p *ParticleSystemData3) setRadius(newRadius float64) {
+
+	p.radius = newRadius
+}
