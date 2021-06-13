@@ -34,3 +34,9 @@ func (b *BoundingBox2D) height() float64 {
 
 	return b.upperCorner.y - b.lowerCorner.y
 }
+
+// Returns the mid-point of this box.
+func (b *BoundingBox2D) midPoint() *Vector3D {
+
+	return b.upperCorner.Add(b.lowerCorner).Divide(2)
+}

@@ -249,6 +249,13 @@ func TestSphSolver2WaterDrop(t *testing.T) {
 
 	// Initialize source.
 	surfaceSet := NewImplicitSurfaceSet2()
+	v1 := NewVector(0, 1, 0)
+	v2 := NewVector(0, 0.25*domain.height(), 0)
+	p := NewPlane2D(v1, v2)
+	surfaceSet.addExplicitSurface(p)
 
-	_, _, _, _, _ = targetSpacing, domain, solver, particles, surfaceSet
+	s := NewSphere2(domain.midPoint(), domain.width()*0.15)
+	surfaceSet.addExplicitSurface(s)
+
+	_, _, _, _, _, _ = targetSpacing, domain, solver, particles, surfaceSet, v1
 }
