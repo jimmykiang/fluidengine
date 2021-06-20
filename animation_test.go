@@ -257,5 +257,12 @@ func TestSphSolver2WaterDrop(t *testing.T) {
 	s := NewSphere2(domain.midPoint(), domain.width()*0.15)
 	surfaceSet.addExplicitSurface(s)
 
-	_, _, _, _, _, _ = targetSpacing, domain, solver, particles, surfaceSet, v1
+	sourceBound := NewBoundingBox2DFromStruct(domain)
+	sourceBound.expand(-targetSpacing)
+
+	emitter := NewVolumeParticleEmitter2(surfaceSet, sourceBound, targetSpacing, NewVector(0, 0, 0))
+
+	solver.setEmitter(emitter)
+
+	_, _, _, _, _, _, _, _ = targetSpacing, domain, solver, particles, surfaceSet, v1, sourceBound, emitter
 }

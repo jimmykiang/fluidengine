@@ -6,7 +6,7 @@ import "math"
 // equation-of-state (EOS).
 type SphSolver2 struct {
 	particleSystemData    *SphSystemData2
-	particleSystemSolver3 *ParticleSystemSolver3
+	particleSystemSolver2 *ParticleSystemSolver2
 	wind                  *ConstantVectorField3
 	// Exponent component of equation-of-state (or Tait's equation).
 	eosExponent float64
@@ -27,7 +27,7 @@ type SphSolver2 struct {
 
 func NewSphSolver2() *SphSolver2 {
 	s := &SphSolver2{
-		particleSystemSolver3:      NewParticleSystemSolver3(),
+		particleSystemSolver2:      NewParticleSystemSolver2(),
 		particleSystemData:         NewSphSystemData2(),
 		wind:                       NewConstantVectorField3(),
 		eosExponent:                7.0,
@@ -38,11 +38,17 @@ func NewSphSolver2() *SphSolver2 {
 		timeStepLimitScale:         1,
 	}
 
-	s.particleSystemSolver3.setIsUsingFixedSubTimeSteps(false)
+	s.particleSystemSolver2.setIsUsingFixedSubTimeSteps(false)
 	return s
 }
 
 func (s *SphSolver2) setPseudoViscosityCoefficient(newPseudoViscosityCoefficient float64) {
 
 	s.pseudoViscosityCoefficient = math.Max(newPseudoViscosityCoefficient, 0)
+}
+
+func (s *SphSolver2) setEmitter(newEmitter *VolumeParticleEmitter2) {
+
+	s.particleSystemSolver2.emitter = newEmitter
+	newEmitter.setTarget(s.particleSystemData)
 }
