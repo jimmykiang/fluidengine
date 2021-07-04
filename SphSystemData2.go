@@ -26,9 +26,9 @@ func NewSphSystemData2() *SphSystemData2 {
 	s := &SphSystemData2{
 		particleSystemData:            NewParticleSystemData3(),
 		targetDensity:                 kWaterDensity,
-		targetSpacing:                 0.1,
+		targetSpacing:                 0.2,
 		kernelRadiusOverTargetSpacing: 1.8,
-		kernelRadius:                  0,
+		kernelRadius:                  1,
 		pressureIdx:                   0,
 		densityIdx:                    0,
 	}

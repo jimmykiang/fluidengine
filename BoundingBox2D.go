@@ -25,14 +25,25 @@ func NewBoundingBox2D(point1, point2 *Vector3D) *BoundingBox2D {
 	}
 }
 
-func NewBoundingBox2DFromStruct(other *BoundingBox2D) *BoundingBox2D{
+// NewBoundingBox2DReset constructs a box with the highest boundaries.
+func NewBoundingBox2DReset() *BoundingBox2D {
+	lowerCorner := NewVector(math.MaxFloat64, math.MaxFloat64, math.MaxFloat64)
+	upperCorner := NewVector(-math.MaxFloat64, -math.MaxFloat64, -math.MaxFloat64)
 
-	lowerCorner:=NewVector(other.lowerCorner.x, other.lowerCorner.y, other.lowerCorner.z)
+	return &BoundingBox2D{
+		lowerCorner: lowerCorner,
+		upperCorner: upperCorner,
+	}
+}
+
+func NewBoundingBox2DFromStruct(other *BoundingBox2D) *BoundingBox2D {
+
+	lowerCorner := NewVector(other.lowerCorner.x, other.lowerCorner.y, other.lowerCorner.z)
 	upperCorner := NewVector(other.upperCorner.x, other.upperCorner.y, other.upperCorner.z)
 
 	return &BoundingBox2D{
-		lowerCorner : lowerCorner,
-		upperCorner : upperCorner,
+		lowerCorner: lowerCorner,
+		upperCorner: upperCorner,
 	}
 }
 
@@ -51,7 +62,9 @@ func (b *BoundingBox2D) height() float64 {
 // Returns the mid-point of this box.
 func (b *BoundingBox2D) midPoint() *Vector3D {
 
-	return b.upperCorner.Add(b.lowerCorner).Divide(2)
+	result := b.upperCorner.Add(b.lowerCorner).Divide(2)
+
+	return result
 }
 
 // expand this box by given delta to all direction.
@@ -59,6 +72,32 @@ func (b *BoundingBox2D) midPoint() *Vector3D {
 // x+y+y width.
 func (b *BoundingBox2D) expand(delta float64) {
 
-	b.lowerCorner = b.lowerCorner.Substract(NewVector(delta,delta,delta))
-	b.upperCorner = b.upperCorner.Add(NewVector(delta,delta,delta))
+	b.lowerCorner = b.lowerCorner.Substract(NewVector(delta, delta, delta))
+	b.upperCorner = b.upperCorner.Add(NewVector(delta, delta, delta))
+}
+
+// corner returns corner position. Index starts from x-first order.
+func (b *BoundingBox2D) corner(idx int) *Vector3D {
+
+	h := 0.5
+	offset := make([]*Vector3D, 0, 4)
+
+	offset = append(offset, NewVector(-h, -h, 0))
+	offset = append(offset, NewVector(h, -h, 0))
+	offset = append(offset, NewVector(-h, h, 0))
+	offset = append(offset, NewVector(h, h, 0))
+
+	a := NewVector(b.width(), b.height(), 0)
+	//c := offset[idx].Add(b.midPoint())
+	c := a.mul(offset[idx])
+
+	result := c.Add(b.midPoint())
+	return result
+}
+
+func (b *BoundingBox2D) merge(other *BoundingBox2D) {
+	b.lowerCorner.x = math.Min(b.lowerCorner.x, other.lowerCorner.x)
+	b.lowerCorner.y = math.Min(b.lowerCorner.y, other.lowerCorner.y)
+	b.upperCorner.x = math.Max(b.upperCorner.x, other.upperCorner.x)
+	b.upperCorner.y = math.Max(b.upperCorner.y, other.upperCorner.y)
 }

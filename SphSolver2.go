@@ -52,3 +52,46 @@ func (s *SphSolver2) setEmitter(newEmitter *VolumeParticleEmitter2) {
 	s.particleSystemSolver2.emitter = newEmitter
 	newEmitter.setTarget(s.particleSystemData)
 }
+
+func (s *SphSolver2) setCollider(collider *RigidBodyCollider2) {
+
+	s.particleSystemSolver2.SetCollider(collider)
+}
+
+func (s *SphSolver2) onUpdate(frame *Frame) {
+
+	s.onInitialize()
+
+	// Perform adaptive time-stepping
+	remainingTime := frame.timeIntervalInSeconds
+
+	if remainingTime > kEpsilonD {
+
+		numSteps := s.numberOfSubTimeSteps(remainingTime)
+
+		_ = numSteps
+	}
+
+}
+
+// onInitialize initializes the simulator.
+func (s *SphSolver2) onInitialize() {
+	// When initializing the solver, update the collider and emitter state as
+	// well since they also affects the initial condition of the simulation.
+
+	s.updateEmitter(0.0)
+}
+
+func (s *SphSolver2) numberOfSubTimeSteps(timeIntervalInSeconds float64) int64 {
+
+	particles := NewSphSystemData2()
+
+	_ = particles
+
+	return 0
+}
+
+func (s *SphSolver2) updateEmitter(f float64) {
+
+	s.particleSystemSolver2.emitter.onUpdate()
+}

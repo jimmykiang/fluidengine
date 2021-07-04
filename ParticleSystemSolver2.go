@@ -19,7 +19,7 @@ type ParticleSystemSolver2 struct {
 	particleSystemData        *ParticleSystemData3
 	newPositions              []*Vector3D
 	newVelocities             []*Vector3D
-	collider                  *RigidBodyCollider3
+	collider                  *RigidBodyCollider2
 	emitter                   *VolumeParticleEmitter2
 	wind                      *ConstantVectorField3
 }
@@ -52,6 +52,9 @@ func NewParticleSystemSolver2() *ParticleSystemSolver2 {
 }
 
 func (p *ParticleSystemSolver2) setIsUsingFixedSubTimeSteps(isUsing bool) {
-
 	p.isUsingFixedSubTimeSteps = isUsing
+}
+
+func (p *ParticleSystemSolver2) SetCollider(collider *RigidBodyCollider2) {
+	p.collider = collider
 }

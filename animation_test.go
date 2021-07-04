@@ -264,5 +264,21 @@ func TestSphSolver2WaterDrop(t *testing.T) {
 
 	solver.setEmitter(emitter)
 
-	_, _, _, _, _, _, _, _ = targetSpacing, domain, solver, particles, surfaceSet, v1, sourceBound, emitter
+	// Initialize boundary
+	box := NewBox2(domain)
+	box.Surface2.isNormalFlipped = true
+
+	collider := NewRigidBodyCollider2(box)
+	solver.setCollider(collider)
+
+	frame := NewFrame()
+	frame.timeIntervalInSeconds = 1.0 / 60.0
+
+	for ; frame.index < 120; frame.advance() {
+
+		fmt.Println("Frame index:", frame.index)
+		solver.onUpdate(frame)
+	}
+
+	_ = collider
 }

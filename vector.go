@@ -39,6 +39,15 @@ func (v *Vector3D) Multiply(i float64) *Vector3D {
 	}
 }
 
+// mul computes this * (v.x, v.y, v.z).
+func (v *Vector3D) mul(i *Vector3D) *Vector3D {
+	return &Vector3D{
+		x: v.x * i.x,
+		y: v.y * i.y,
+		z: v.z * i.z,
+	}
+}
+
 // Divide Vector3D.
 func (v *Vector3D) Divide(i float64) *Vector3D {
 	return &Vector3D{
@@ -114,4 +123,21 @@ func (v *Vector3D) tangential() []*Vector3D {
 func (v *Vector3D) distanceTo(other *Vector3D) float64 {
 
 	return v.Substract(other).Length()
+}
+
+func (v *Vector3D) min(o *Vector3D) *Vector3D {
+
+	return NewVector(math.Min(v.x, o.x), math.Min(v.y, o.y), 0)
+}
+
+func (v *Vector3D) max(o *Vector3D) *Vector3D {
+
+	return NewVector(math.Max(v.x, o.x), math.Max(v.y, o.y), 0)
+}
+
+func (v *Vector3D) isSimilar(other *Vector3D) bool {
+
+	r := math.Abs(v.x-other.x) < kEpsilonD && math.Abs(v.y-other.y) < kEpsilonD
+
+	return r
 }

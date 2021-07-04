@@ -325,9 +325,6 @@ func (p *ParticleSystemSolver3) saveParticleDataXyUpdate(particles *ParticleSyst
 
 	saveNpy(path, conf, fileNameX, x, frame)
 	saveNpy(path, conf, fileNameY, y, frame)
-
-	_ = n
-
 }
 
 func (p *ParticleSystemSolver3) setIsUsingFixedSubTimeSteps(isUsing bool) {
