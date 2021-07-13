@@ -6,6 +6,7 @@ type ImplicitSurface2 interface {
 	isBounded() bool
 	boundingBox() *BoundingBox2D
 	signedDistance(otherPoint *Vector3D) float64
+	getTransform() *Transform2
 }
 
 // Plane2D defines a simple Plane2D struct data representing a 3-D plane geometry.
@@ -24,6 +25,10 @@ type Plane2D struct {
 
 	// Flips normal when calling Surface3::closestNormal(...).
 	isNormalFlipped bool
+}
+
+func (p *Plane2D) getTransform() *Transform2 {
+	return p.transform
 }
 
 // NewPlane2D constructs a plane that cross \p point with surface normal \p normal.

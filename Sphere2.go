@@ -31,6 +31,10 @@ func NewSphere2(center *Vector3D, radius float64) *Sphere2 {
 	}
 }
 
+func (s *Sphere2) getTransform() *Transform2 {
+	return s.transform
+}
+
 // isBounded returns true if bounding box can be defined.
 func (s *Sphere2) isBounded() bool {
 

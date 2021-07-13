@@ -32,7 +32,7 @@ func (p Plane3D) closestDistance(otherPoint *Vector3D) float64 {
 	otherPointLocal := p.transform.toLocal(otherPoint)
 	d := p.closestPointLocal(otherPointLocal)
 
-	//Returns the distance to the other vector.
+	//Returns the distance to the other vector.1
 
 	return otherPointLocal.Substract(d).Length()
 }

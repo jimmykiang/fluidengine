@@ -12,3 +12,8 @@ func NewRigidBodyCollider2(surface *Box2) *RigidBodyCollider2 {
 		surface: surface,
 	}
 }
+
+func (c *RigidBodyCollider2) update(seconds float64) {
+
+	// do nothing?
+}

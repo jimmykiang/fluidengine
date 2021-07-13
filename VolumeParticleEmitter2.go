@@ -67,13 +67,23 @@ func (e *VolumeParticleEmitter2) onUpdate() {
 
 	particles := e.particles
 
-	newPositions := NewVector(0, 0, 0)
-	newVelocities := NewVector(0, 0, 0)
+	if !e.isEnabled {
+		return
+	}
 
-	e.emit(particles, newPositions, newVelocities)
+	newPositions := make([]*Vector3D, 0, 0)
+	newVelocities := make([]*Vector3D, 0, 0)
+
+	e.emit(particles, &newPositions, &newVelocities)
+
+	particles.addParticles(newPositions, newVelocities, nil)
+
+	if e.isOneShot {
+		e.isEnabled = false
+	}
 }
 
-func (e *VolumeParticleEmitter2) emit(particles *SphSystemData2, newPositions *Vector3D, newVelocities *Vector3D) {
+func (e *VolumeParticleEmitter2) emit(particles *SphSystemData2, newPositions, newVelocities *[]*Vector3D) {
 
 	e.implicitSurface.updateQueryEngine()
 
@@ -86,6 +96,7 @@ func (e *VolumeParticleEmitter2) emit(particles *SphSystemData2, newPositions *V
 	// Reserving more space for jittering
 	j := e.jitter
 	maxJitterDist := 0.5 * j * e.spacing
+	numNewParticles := 0.0
 
 	callback := func(points *([]*Vector3D), point *Vector3D) bool {
 		newAngleInRadian := (rand.Float64() - 0.5) * math.Pi * 2
@@ -96,18 +107,49 @@ func (e *VolumeParticleEmitter2) emit(particles *SphSystemData2, newPositions *V
 
 		if e.implicitSurface.signedDistance(candidate) <= 0.0 {
 			if e.numberOfEmittedParticles < e.maxNumberOfParticles {
-				// todo
-
+				*newPositions = append(*newPositions, candidate)
+				e.numberOfEmittedParticles++
+				numNewParticles++
+			} else {
+				return false
 			}
 		}
-
-		_, _ = randomDir, candidate
 		return true
 	}
 
 	if e.allowOverlapping || e.isOneShot {
 
 		e.pointsGen.forEachPoint(region, e.spacing, nil, callback)
+	} else {
+		// Use serial hash grid searcher for continuous update.
+		// todo.
 	}
-	_, _, _ = region, j, maxJitterDist
+	// not needed?
+	//*newVelocities = make([]*Vector3D, len(*newPositions), len(*newPositions))
+
+	// original code from: \FluidEngine\fluid-engine-dev\src\jet\volume_particle_emitter2.cpp
+	//newVelocities->parallelForEachIndex([&](size_t i) {
+	//	(*newVelocities)[i] = velocityAt((*newPositions)[i]);
+	//});
+
+	e.parallelForEachIndex(newVelocities, newPositions)
+}
+
+func (e *VolumeParticleEmitter2) velocityAt(point *Vector3D) *Vector3D {
+
+	r := point.Substract(e.implicitSurface.surfaces[0].getTransform().translation)
+	a := NewVector(-r.y, r.x, 0).Multiply(e.angularVel)
+	return a.Add(e.linearVel).Add(e.initialVel)
+}
+
+func (e *VolumeParticleEmitter2) parallelForEachIndex(newVelocities, newPositions *[]*Vector3D) {
+	for i := 0.0; i < e.numberOfEmittedParticles; i++ {
+
+		e.callback(i, newVelocities, newPositions)
+	}
+}
+
+func (e *VolumeParticleEmitter2) callback(i float64, newVelocities, newPositions *[]*Vector3D) {
+
+	*newVelocities = append(*newVelocities, e.velocityAt((*newPositions)[int64(i)]))
 }

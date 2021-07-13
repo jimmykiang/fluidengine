@@ -18,12 +18,12 @@ func (t *TrianglePointGenerator) generate(
 		boundingBox,
 		spacing,
 		points,
-		callback,
+		t.callback,
 	)
 
 }
 
-func callback(points *([]*Vector3D), v *Vector3D) bool {
+func (t *TrianglePointGenerator) callback(points *([]*Vector3D), v *Vector3D) bool {
 	*points = append(*points, NewVector(v.x, v.y, v.z))
 	return true
 }

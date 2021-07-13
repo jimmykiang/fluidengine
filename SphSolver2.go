@@ -62,15 +62,7 @@ func (s *SphSolver2) onUpdate(frame *Frame) {
 
 	s.onInitialize()
 
-	// Perform adaptive time-stepping
-	remainingTime := frame.timeIntervalInSeconds
-
-	if remainingTime > kEpsilonD {
-
-		numSteps := s.numberOfSubTimeSteps(remainingTime)
-
-		_ = numSteps
-	}
+	s.advanceTimeStep(frame.timeIntervalInSeconds)
 
 }
 
@@ -84,14 +76,86 @@ func (s *SphSolver2) onInitialize() {
 
 func (s *SphSolver2) numberOfSubTimeSteps(timeIntervalInSeconds float64) int64 {
 
-	particles := NewSphSystemData2()
+	//particles := NewSphSystemData2()
+	particles := s.particleSystemData
+	numberOfParticles := particles.particleSystemData.numberOfParticles
+	f := particles.forces()
 
-	_ = particles
+	kernelRadius := particles.kernelRadius
+	mass := particles.particleSystemData.mass
+	maxForceMagnitude := 0.0
 
-	return 0
+	for i := int64(0); i < numberOfParticles; i++ {
+		maxForceMagnitude = math.Max(maxForceMagnitude, f[i].Length())
+	}
+
+	timeStepLimitBySpeed := kTimeStepLimitBySpeedFactor * kernelRadius / s.speedOfSound
+	timeStepLimitByForce := kTimeStepLimitByForceFactor * math.Sqrt(kernelRadius*mass/maxForceMagnitude)
+	desiredTimeStep := s.timeStepLimitScale * math.Min(timeStepLimitBySpeed, timeStepLimitByForce)
+	return int64(math.Ceil(timeIntervalInSeconds / desiredTimeStep))
 }
 
 func (s *SphSolver2) updateEmitter(f float64) {
 
 	s.particleSystemSolver2.emitter.onUpdate()
+}
+
+func (s *SphSolver2) advanceTimeStep(timeIntervalInSeconds float64) {
+
+	// Perform adaptive time-stepping
+	remainingTime := timeIntervalInSeconds
+
+	if remainingTime > kEpsilonD {
+
+		numSteps := s.numberOfSubTimeSteps(remainingTime)
+		actualTimeInterval := remainingTime / float64(numSteps)
+
+		s.onAdvanceTimeStep(actualTimeInterval)
+
+	}
+}
+
+func (s *SphSolver2) onAdvanceTimeStep(timeStepInSeconds float64) {
+
+	s.beginAdvanceTimeStep(timeStepInSeconds)
+
+}
+
+func (s *SphSolver2) updateCollider(timeStepInSeconds float64) {
+	s.particleSystemSolver2.collider.update(timeStepInSeconds)
+}
+
+func (p *SphSolver2) resize(size int64) {
+
+	for i := int64(0); i < size-1; i++ {
+		p.particleSystemSolver2.newPositions = append(p.particleSystemSolver2.newPositions, NewVector(0, 0, 0))
+		p.particleSystemSolver2.newVelocities = append(p.particleSystemSolver2.newVelocities, NewVector(0, 0, 0))
+	}
+}
+
+func (s *SphSolver2) beginAdvanceTimeStep(timeStepInSeconds float64) {
+
+	// Clear forces.
+	forces := s.particleSystemData.forces()
+	for i := 0; i < len(forces); i++ {
+		forces[i] = NewVector(0, 0, 0)
+	}
+
+	// Update collider and emitter.
+	s.updateCollider(timeStepInSeconds)
+	s.particleSystemSolver2.emitter.onUpdate()
+
+	// Allocate buffers.
+	n := s.particleSystemData.particleSystemData.numberOfParticles
+	s.resize(n)
+
+	s.onBeginAdvanceTimeStep(timeStepInSeconds)
+}
+
+func (s *SphSolver2) onBeginAdvanceTimeStep(seconds float64) {
+
+	particles := s.particleSystemData
+	particles.buildNeighborSearcher()
+
+	_ = particles
 }

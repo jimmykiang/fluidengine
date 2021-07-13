@@ -50,7 +50,7 @@ func (t *Transform2) toLocal(pointInWorld *Vector3D) *Vector3D {
 	// Convert to the local frame.
 	xmt := pointInWorld.Substract(t.translation)
 
-	x := t.cosAngle*xmt.x - t.sinAngle*xmt.y
-	y := t.sinAngle*xmt.x + t.cosAngle*xmt.y
-	return NewVector(x, -y, 0)
+	x := t.cosAngle*xmt.x + t.sinAngle*xmt.y
+	y := -t.sinAngle*xmt.x + t.cosAngle*xmt.y
+	return NewVector(x, y, 0)
 }
