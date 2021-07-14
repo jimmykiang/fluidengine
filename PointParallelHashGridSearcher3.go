@@ -1,6 +1,8 @@
 package main
 
-import "math"
+import (
+	"math"
+)
 
 // PointParallelHashGridSearcher3 is a parallel version of hash grid-based 3-D point searcher.
 // This struct implements parallel version of 3-D point searcher by using hash
@@ -85,10 +87,69 @@ func (s *PointParallelHashGridSearcher3) build(points []*Vector3D) {
 	}
 
 	// Sort indices based on hash key.
+	tempKeysResult := make([]int64, 0, 0)
 
-	x := 0
-	_ = x
+	uniqueTempKeys := make([]int64, 0, 0)
+	keys := make(map[int64]bool)
 
+	for _, entry := range tempKeys {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			uniqueTempKeys = append(uniqueTempKeys, entry)
+		}
+	}
+
+	for _, tV := range uniqueTempKeys {
+		for k, v := range tempKeys {
+			if v == tV {
+				tempKeysResult = append(tempKeysResult, int64(k))
+			}
+		}
+	}
+	copy(s.sortedIndices, tempKeysResult)
+
+	// Re-order point and key arrays.
+	for i := 0; i < numberOfPoints; i++ {
+		s.points[i] = points[s.sortedIndices[i]]
+		s.keys[i] = tempKeys[s.sortedIndices[i]]
+	}
+
+	// Now _points and _keys are sorted by points' hash key values.
+	// Let's fill in start/end index table with _keys.
+	// Assume that _keys array looks like:
+	// [5|8|8|10|10|10]
+	// Then _startIndexTable and _endIndexTable should be like:
+	// [.....|0|...|1|..|3|..]
+	// [.....|1|...|3|..|6|..]
+	//       ^5    ^8   ^10
+	// So that _endIndexTable[i] - _startIndexTable[i] is the number points
+	// in i-th table bucket.
+
+	s.startIndexTable[s.keys[0]] = 0
+	s.endIndexTable[s.keys[numberOfPoints-1]] = int64(numberOfPoints)
+
+	for i := 1; i < numberOfPoints; i++ {
+		if s.keys[i] > s.keys[i-1] {
+			s.startIndexTable[s.keys[i]] = int64(i)
+			s.endIndexTable[s.keys[i-1]] = int64(i)
+		}
+	}
+
+	sumNumberOfPointsPerBucket := int64(0)
+	maxNumberOfPointsPerBucket := int64(0)
+	numberOfNonEmptyBucket := int64(0)
+
+	for i := 0; i < len(s.startIndexTable); i++ {
+		if s.startIndexTable[i] != math.MaxInt64 {
+			numberOfPointsInBucket := s.endIndexTable[i] - s.startIndexTable[i]
+			sumNumberOfPointsPerBucket += numberOfPointsInBucket
+			maxNumberOfPointsPerBucket = int64(math.Max(
+				float64(maxNumberOfPointsPerBucket),
+				float64(numberOfPointsInBucket),
+			))
+			numberOfNonEmptyBucket++
+		}
+	}
 }
 
 func (s *PointParallelHashGridSearcher3) getHashKeyFromPosition(position *Vector3D) int64 {
