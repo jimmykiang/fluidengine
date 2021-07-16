@@ -108,6 +108,8 @@ func (s *PointParallelHashGridSearcher3) build(points []*Vector3D) {
 	}
 	copy(s.sortedIndices, tempKeysResult)
 
+	//sort.Slice(s.sortedIndices, func(i, j int) bool { return tempKeys[i] < tempKeys[i] })
+
 	// Re-order point and key arrays.
 	for i := 0; i < numberOfPoints; i++ {
 		s.points[i] = points[s.sortedIndices[i]]
@@ -179,4 +181,71 @@ func (s *PointParallelHashGridSearcher3) getHashKeyFromBucketIndex(bucketIndex *
 	}
 
 	return int64(wrappedIndex.y*s.resolution.x + wrappedIndex.x)
+}
+
+func (s *PointParallelHashGridSearcher3) forEachNearbyPoint(
+	origin *Vector3D,
+	radius float64,
+	iExternal int64,
+	callback func(i int64, j int64),
+) {
+	nearbyKeys := make([]int64, 4, 4)
+
+	s.getNearbyKeys(origin, nearbyKeys)
+
+	queryRadiusSquared := radius * radius
+
+	for i := 0; i < 4; i++ {
+		nearbyKey := nearbyKeys[i]
+		start := s.startIndexTable[nearbyKey]
+		end := s.endIndexTable[nearbyKey]
+
+		// Empty bucket -- continue to next bucket.
+
+		if start == math.MaxInt64 {
+			continue
+		}
+
+		for j := start; j < end; j++ {
+			direction := s.points[j].Substract(origin)
+			distanceSquared := direction.Squared()
+
+			if distanceSquared <= queryRadiusSquared {
+				callback(int64(iExternal), s.sortedIndices[j])
+			}
+		}
+	}
+}
+
+func (s *PointParallelHashGridSearcher3) getNearbyKeys(
+	position *Vector3D,
+	nearbyKeys []int64,
+) {
+	originIndex := s.getBucketIndex(position)
+
+	nearbyBucketIndices := make([]*Vector3D, 0, 0)
+
+	for i := 0; i < 4; i++ {
+		nearbyBucketIndices = append(nearbyBucketIndices, NewVector(originIndex.x, originIndex.y, 0))
+	}
+
+	if (originIndex.x + 0.5*s.gridSpacing) < position.x {
+		nearbyBucketIndices[2].x += 1
+		nearbyBucketIndices[3].x += 1
+	} else {
+		nearbyBucketIndices[2].x -= 1
+		nearbyBucketIndices[3].x -= 1
+	}
+
+	if (originIndex.y + 0.5*s.gridSpacing) < position.x {
+		nearbyBucketIndices[1].y += 1
+		nearbyBucketIndices[3].y += 1
+	} else {
+		nearbyBucketIndices[1].y -= 1
+		nearbyBucketIndices[3].y -= 1
+	}
+
+	for i := 0; i < 4; i++ {
+		nearbyKeys[i] = s.getHashKeyFromBucketIndex(nearbyBucketIndices[i])
+	}
 }

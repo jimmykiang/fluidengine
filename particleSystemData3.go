@@ -35,7 +35,7 @@ func NewParticleSystemData3() *ParticleSystemData3 {
 			kDefaultHashGridResolution,
 			0.002,
 		),
-		neighborLists: make([][]int64, 5),
+		neighborLists: make([][]int64, 0, 0),
 	}
 
 	(*p).positionIdx = (*p).addVectorData()

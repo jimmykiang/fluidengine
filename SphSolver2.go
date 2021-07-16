@@ -156,6 +156,7 @@ func (s *SphSolver2) onBeginAdvanceTimeStep(seconds float64) {
 
 	particles := s.particleSystemData
 	particles.buildNeighborSearcher()
+	particles.buildNeighborLists()
 
 	_ = particles
 }

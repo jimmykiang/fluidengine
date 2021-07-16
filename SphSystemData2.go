@@ -171,3 +171,27 @@ func (s *SphSystemData2) buildNeighborSearcher() {
 
 	s.particleSystemData.neighborSearcher.build(s.positions())
 }
+
+func (s *SphSystemData2) buildNeighborLists() {
+
+	for i := 0; i < int(s.particleSystemData.numberOfParticles); i++ {
+		s.particleSystemData.neighborLists = append(s.particleSystemData.neighborLists, make([]int64, 0, 0))
+	}
+
+	points := s.positions()
+
+	// Callback function for nearby search query. The first parameter is the
+	// index of the nearby point, and the second is the position of the point.
+	callback := func(i, j int64) {
+		if i != j {
+			s.particleSystemData.neighborLists[i] = append(s.particleSystemData.neighborLists[i], j)
+		}
+	}
+
+	for i := int64(0); i < s.particleSystemData.numberOfParticles; i++ {
+		origin := points[i]
+		s.particleSystemData.neighborLists[i] = make([]int64, 0, 0)
+
+		s.particleSystemData.neighborSearcher.forEachNearbyPoint(origin, s.kernelRadius, i, callback)
+	}
+}

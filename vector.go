@@ -86,9 +86,14 @@ func (v *Vector3D) CrossProduct(o *Vector3D) *Vector3D {
 	return NewVector((*v).y*o.z-v.z*o.y, v.z*o.x-v.x*o.z, v.x*o.y-v.y*o.x)
 }
 
-// Magnitude of a vector
+// Magnitude of a vector (duplicated with Length() ????)
 func (v *Vector3D) LengthSquared() float64 {
 	return math.Sqrt(square(v.x) + square(v.y) + square(v.z))
+}
+
+// Squared squares the components of a vector.
+func (v *Vector3D) Squared() float64 {
+	return square(v.x) + square(v.y) + square(v.z)
 }
 
 // Set the value of the current Vector3D with the new value from another Vector3D.
