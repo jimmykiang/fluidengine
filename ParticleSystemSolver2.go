@@ -58,3 +58,28 @@ func (p *ParticleSystemSolver2) setIsUsingFixedSubTimeSteps(isUsing bool) {
 func (p *ParticleSystemSolver2) SetCollider(collider *RigidBodyCollider2) {
 	p.collider = collider
 }
+
+//func (p *ParticleSystemSolver2) accumulateForces(seconds float64) {
+//
+//	// Add external forces.
+//	p.accumulateExternalForces()
+//}
+//
+//func (p *ParticleSystemSolver2) accumulateExternalForces() {
+//
+//	n := p.particleSystemData.numberOfParticles
+//	forces := p.particleSystemData.forces()
+//	velocities := p.particleSystemData.velocities()
+//	mass := p.particleSystemData.Mass()
+//
+//	for i := 0; i < int(n); i++ {
+//		// Gravity.
+//		force := p.gravity.Multiply(mass)
+//
+//		// Wind forces.
+//		relativeVel := velocities[i].Substract(p.wind.value)
+//		force.Add(relativeVel.Multiply(p.dragCoefficient))
+//
+//		forces[i] = forces[i].Add(force)
+//	}
+//}

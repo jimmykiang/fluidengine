@@ -119,17 +119,19 @@ func (s *SphSolver2) onAdvanceTimeStep(timeStepInSeconds float64) {
 
 	s.beginAdvanceTimeStep(timeStepInSeconds)
 
+	s.accumulateForces(timeStepInSeconds)
+
 }
 
 func (s *SphSolver2) updateCollider(timeStepInSeconds float64) {
 	s.particleSystemSolver2.collider.update(timeStepInSeconds)
 }
 
-func (p *SphSolver2) resize(size int64) {
+func (s *SphSolver2) resize(size int64) {
 
 	for i := int64(0); i < size-1; i++ {
-		p.particleSystemSolver2.newPositions = append(p.particleSystemSolver2.newPositions, NewVector(0, 0, 0))
-		p.particleSystemSolver2.newVelocities = append(p.particleSystemSolver2.newVelocities, NewVector(0, 0, 0))
+		s.particleSystemSolver2.newPositions = append(s.particleSystemSolver2.newPositions, NewVector(0, 0, 0))
+		s.particleSystemSolver2.newVelocities = append(s.particleSystemSolver2.newVelocities, NewVector(0, 0, 0))
 	}
 }
 
@@ -157,6 +159,62 @@ func (s *SphSolver2) onBeginAdvanceTimeStep(seconds float64) {
 	particles := s.particleSystemData
 	particles.buildNeighborSearcher()
 	particles.buildNeighborLists()
+	particles.updateDensities()
+}
 
-	_ = particles
+func (s *SphSolver2) accumulateForces(timeStepInSeconds float64) {
+
+	s.accumulateNonPressureForces(timeStepInSeconds)
+}
+
+func (s *SphSolver2) accumulateNonPressureForces(timeStepInSeconds float64) {
+
+	s.accumulateExternalForces(timeStepInSeconds)
+	s.accumulateViscosityForce()
+}
+
+func (s *SphSolver2) accumulateExternalForces(timeStepInSeconds float64) {
+
+	n := s.particleSystemData.particleSystemData.numberOfParticles
+	forces := s.particleSystemData.particleSystemData.forces()
+	velocities := s.particleSystemData.particleSystemData.velocities()
+	mass := s.particleSystemData.particleSystemData.Mass()
+
+	for i := 0; i < int(n); i++ {
+		// Gravity.
+		force := s.particleSystemSolver2.gravity.Multiply(mass)
+
+		// Wind forces.
+		relativeVel := velocities[i].Substract(s.particleSystemSolver2.wind.value)
+		force.Add(relativeVel.Multiply(s.particleSystemSolver2.dragCoefficient))
+
+		forces[i] = forces[i].Add(force)
+	}
+}
+
+func (s *SphSolver2) accumulateViscosityForce() {
+	particles := s.particleSystemData.particleSystemData
+	numberOfParticles := s.particleSystemData.particleSystemData.numberOfParticles
+	x := s.particleSystemData.positions()
+	v := s.particleSystemData.velocities()
+	d := s.particleSystemData.densities()
+	f := s.particleSystemData.forces()
+
+	massSquared := math.Pow(s.particleSystemData.particleSystemData.mass, 2)
+
+	kernel := NewSphSpikyKernel2(s.particleSystemData.kernelRadius)
+
+	for i := int64(0); i < numberOfParticles; i++ {
+
+		neighbors := particles.neighborLists[i]
+
+		for _, j := range neighbors {
+			dist := x[i].distanceTo(x[j])
+
+			a := s.viscosityCoefficient * massSquared * kernel.secondDerivative(dist)
+			b := v[j].Substract(v[i])
+			c := b.Divide(d[j])
+			f[i] = f[i].Add(c.Multiply(a))
+		}
+	}
 }

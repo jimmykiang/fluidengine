@@ -146,6 +146,10 @@ func (s *SphSystemData2) forces() []*Vector3D {
 	return (*s).particleSystemData.vectorDataList[s.particleSystemData.forceIdx]
 }
 
+func (s *SphSystemData2) densities() []float64 {
+	return (*s).particleSystemData.scalarDataList[s.densityIdx]
+}
+
 func (s *SphSystemData2) buildNeighborSearcher() {
 	// Use PointParallelHashGridSearcher2 by default... (now PointParallelHashGridSearcher3).
 	s.particleSystemData.neighborSearcher = NewPointParallelHashGridSearcher3(
@@ -182,7 +186,7 @@ func (s *SphSystemData2) buildNeighborLists() {
 
 	// Callback function for nearby search query. The first parameter is the
 	// index of the nearby point, and the second is the position of the point.
-	callback := func(i, j int64) {
+	callback := func(i, j int64, v *Vector3D, origin *Vector3D, sum *float64) {
 		if i != j {
 			s.particleSystemData.neighborLists[i] = append(s.particleSystemData.neighborLists[i], j)
 		}
@@ -192,6 +196,32 @@ func (s *SphSystemData2) buildNeighborLists() {
 		origin := points[i]
 		s.particleSystemData.neighborLists[i] = make([]int64, 0, 0)
 
-		s.particleSystemData.neighborSearcher.forEachNearbyPoint(origin, s.kernelRadius, i, callback)
+		s.particleSystemData.neighborSearcher.forEachNearbyPoint(origin, s.kernelRadius, i, nil, callback)
 	}
+}
+
+func (s *SphSystemData2) updateDensities() {
+
+	p := s.positions()
+	d := s.densities()
+	m := s.particleSystemData.Mass()
+
+	for i := int64(0); i < s.particleSystemData.numberOfParticles; i++ {
+		sum := s.sumOfKernelNearby(p[i])
+		d[i] = m * sum
+	}
+}
+
+func (s *SphSystemData2) sumOfKernelNearby(origin *Vector3D) float64 {
+	sum := 0.0
+
+	kernel := NewSphStdKernel2(s.kernelRadius)
+
+	callback := func(i, j int64, neighborPosition *Vector3D, origin *Vector3D, sum *float64) {
+		dist := origin.distanceTo(neighborPosition)
+		*sum += kernel.operatorKernel(dist)
+	}
+
+	s.particleSystemData.neighborSearcher.forEachNearbyPoint(origin, s.kernelRadius, 0, &sum, callback)
+	return sum
 }

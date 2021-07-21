@@ -187,7 +187,8 @@ func (s *PointParallelHashGridSearcher3) forEachNearbyPoint(
 	origin *Vector3D,
 	radius float64,
 	iExternal int64,
-	callback func(i int64, j int64),
+	sum *float64,
+	callback func(int64, int64, *Vector3D, *Vector3D, *float64),
 ) {
 	nearbyKeys := make([]int64, 4, 4)
 
@@ -201,7 +202,6 @@ func (s *PointParallelHashGridSearcher3) forEachNearbyPoint(
 		end := s.endIndexTable[nearbyKey]
 
 		// Empty bucket -- continue to next bucket.
-
 		if start == math.MaxInt64 {
 			continue
 		}
@@ -211,7 +211,7 @@ func (s *PointParallelHashGridSearcher3) forEachNearbyPoint(
 			distanceSquared := direction.Squared()
 
 			if distanceSquared <= queryRadiusSquared {
-				callback(int64(iExternal), s.sortedIndices[j])
+				callback(int64(iExternal), s.sortedIndices[j], s.points[j], origin, sum)
 			}
 		}
 	}
