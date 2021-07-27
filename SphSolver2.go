@@ -1,7 +1,7 @@
 package main
 
 import (
-	Vector3D "jimmykiang/fluidengine/Vector3D"
+	"jimmykiang/fluidengine/Vector3D"
 	"jimmykiang/fluidengine/constants"
 	mathHelper "jimmykiang/fluidengine/mathHelper"
 	physicsHelper "jimmykiang/fluidengine/physicsHelper"
@@ -353,6 +353,7 @@ func (s *SphSolver2) endAdvanceTimeStep(timeStepInSeconds float64) {
 
 func (s *SphSolver2) onEndAdvanceTimeStep(timeStepInSeconds float64) {
 	s.computePseudoViscosity(timeStepInSeconds)
+	//particles:=
 }
 
 func (s *SphSolver2) computePseudoViscosity(timeStepInSeconds float64) {
@@ -402,7 +403,6 @@ func (s *SphSolver2) computePseudoViscosity(timeStepInSeconds float64) {
 
 	for i := int64(0); i < numberOfParticles; i++ {
 
-		//v[i] = mathHelper.lerp(v[i], smoothedVelocities[i], factor)
+		v[i] = mathHelper.Lerp(v[i], smoothedVelocities[i], factor)
 	}
-	_, _, _, _, _ = particles, mass, kernel, smoothedVelocities, x
 }
