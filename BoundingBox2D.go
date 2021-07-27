@@ -101,3 +101,14 @@ func (b *BoundingBox2D) merge(other *BoundingBox2D) {
 	b.upperCorner.x = math.Max(b.upperCorner.x, other.upperCorner.x)
 	b.upperCorner.y = math.Max(b.upperCorner.y, other.upperCorner.y)
 }
+
+func (b *BoundingBox2D) contains(point *Vector3D) bool {
+
+	if b.upperCorner.x < point.x || b.lowerCorner.x > point.x {
+		return false
+	}
+	if b.upperCorner.y < point.y || b.lowerCorner.y > point.y {
+		return false
+	}
+	return true
+}

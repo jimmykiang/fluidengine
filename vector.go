@@ -146,3 +146,8 @@ func (v *Vector3D) isSimilar(other *Vector3D) bool {
 
 	return r
 }
+
+func (v *Vector3D) distanceSquaredTo(other *Vector3D) float64 {
+
+	return v.Substract(other).Squared()
+}

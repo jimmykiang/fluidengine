@@ -43,3 +43,32 @@ func (s *SphSpikyKernel2) secondDerivative(distance float64) float64 {
 		return 60 / (kPiD * s.h4) * x
 	}
 }
+
+func (s *SphSpikyKernel2) gradient(
+	distance float64,
+	directionToCenter *Vector3D,
+) *Vector3D {
+
+	a := s.firstDerivative(distance)
+	return directionToCenter.Multiply(a)
+}
+
+func (s *SphSpikyKernel2) firstDerivative(distance float64) float64 {
+
+	if distance >= s.h {
+		return 0
+	} else {
+		x := 1.0 - distance/s.h
+		return -30.0 / (kPiD * s.h3) * x * x
+	}
+}
+
+func (s *SphSpikyKernel2) operatorKernel(distance float64) float64 {
+
+	if distance >= s.h {
+		return 0.0
+	} else {
+		x := 1 - distance/s.h
+		return 10.0 / (kPiD * s.h2) * x * x * x
+	}
+}

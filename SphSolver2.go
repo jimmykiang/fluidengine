@@ -1,6 +1,10 @@
 package main
 
-import "math"
+import (
+	mathHelper "jimmykiang/fluidengine/mathHelper"
+	physicsHelper "jimmykiang/fluidengine/physicsHelper"
+	"math"
+)
 
 // SphSolver2 implements a 2-D SPH solver. The main pressure solver is based on
 // equation-of-state (EOS).
@@ -118,8 +122,10 @@ func (s *SphSolver2) advanceTimeStep(timeIntervalInSeconds float64) {
 func (s *SphSolver2) onAdvanceTimeStep(timeStepInSeconds float64) {
 
 	s.beginAdvanceTimeStep(timeStepInSeconds)
-
 	s.accumulateForces(timeStepInSeconds)
+	s.timeIntegration(timeStepInSeconds)
+	s.resolveCollision()
+	s.endAdvanceTimeStep(timeStepInSeconds)
 
 }
 
@@ -165,6 +171,7 @@ func (s *SphSolver2) onBeginAdvanceTimeStep(seconds float64) {
 func (s *SphSolver2) accumulateForces(timeStepInSeconds float64) {
 
 	s.accumulateNonPressureForces(timeStepInSeconds)
+	s.accumulatePressureForce(timeStepInSeconds)
 }
 
 func (s *SphSolver2) accumulateNonPressureForces(timeStepInSeconds float64) {
@@ -217,4 +224,178 @@ func (s *SphSolver2) accumulateViscosityForce() {
 			f[i] = f[i].Add(c.Multiply(a))
 		}
 	}
+}
+
+func (s *SphSolver2) accumulatePressureForce(timeStepInSeconds float64) {
+
+	x := s.particleSystemData.positions()
+	d := s.particleSystemData.densities()
+	p := s.particleSystemData.pressures()
+	f := s.particleSystemData.forces()
+
+	s.computePressure()
+	s.accumulatePressureForceInternal(x, d, p, f)
+}
+
+func (s *SphSolver2) computePressure() {
+	particles := s.particleSystemData.particleSystemData
+	numberOfParticles := particles.numberOfParticles
+	d := s.particleSystemData.densities()
+	p := s.particleSystemData.pressures()
+
+	// See Murnaghan-Tait equation of state from
+	// https://en.wikipedia.org/wiki/Tait_equation
+	targetDensity := s.particleSystemData.targetDensity
+	eosScale := targetDensity * s.speedOfSound * s.speedOfSound
+
+	for i := int64(0); i < numberOfParticles; i++ {
+		p[i] = physicsHelper.ComputePressureFromEos(
+			d[i],
+			targetDensity,
+			eosScale,
+			s.eosExponent,
+			s.negativePressureScale,
+		)
+	}
+}
+
+func (s *SphSolver2) accumulatePressureForceInternal(
+	positions []*Vector3D,
+	densities []float64,
+	pressures []float64,
+	pressureForces []*Vector3D,
+) {
+	particles := s.particleSystemData.particleSystemData
+	numberOfParticles := particles.numberOfParticles
+	massSquared := particles.Mass() * particles.Mass()
+	kernel := NewSphSpikyKernel2(s.particleSystemData.kernelRadius)
+
+	for i := int64(0); i < numberOfParticles; i++ {
+		neighbors := particles.neighborLists[i]
+		for _, j := range neighbors {
+			dist := positions[i].distanceTo(positions[j])
+
+			if dist > 0.0 {
+				a := positions[j].Substract(positions[i])
+				dir := a.Divide(dist)
+				b := massSquared * (pressures[i]/(densities[i]*densities[i]) +
+					pressures[j]/(densities[j]*densities[j]))
+				c := kernel.gradient(dist, dir)
+				d := c.Multiply(b)
+				pressureForces[i] = pressureForces[i].Substract(d)
+			}
+		}
+	}
+}
+
+func (s *SphSolver2) timeIntegration(timeStepsInSeconds float64) {
+
+	n := s.particleSystemData.particleSystemData.numberOfParticles
+	forces := s.particleSystemData.forces()
+	velocities := s.particleSystemData.velocities()
+	positions := s.particleSystemData.positions()
+	mass := s.particleSystemData.particleSystemData.Mass()
+
+	for i := 0; i < int(n); i++ {
+
+		// Integrate velocity first.
+		newVelocity := s.particleSystemSolver2.newVelocities[i]
+		forceMultiply := forces[i].Multiply(timeStepsInSeconds)
+		forceMultiplyDivide := forceMultiply.Divide(mass)
+		newVelocity = velocities[i].Add(forceMultiplyDivide)
+		s.particleSystemSolver2.newVelocities[i] = newVelocity
+		s.particleSystemData.particleSystemData.vectorDataList[s.particleSystemData.particleSystemData.velocityIdx][i] = newVelocity
+
+		// Integrate position.
+		newPosition := s.particleSystemSolver2.newPositions[i]
+		newVelocityMultiply := newVelocity.Multiply(timeStepsInSeconds)
+		newPosition = positions[i].Add(newVelocityMultiply)
+		s.particleSystemSolver2.newPositions[i] = newPosition
+		s.particleSystemData.particleSystemData.vectorDataList[s.particleSystemData.particleSystemData.positionIdx][i] = newPosition
+	}
+}
+
+func (s *SphSolver2) resolveCollision() {
+
+	numberOfParticles := s.particleSystemData.particleSystemData.numberOfParticles
+	radius := s.particleSystemData.particleSystemData.radius
+
+	for i := 0; i < int(numberOfParticles); i++ {
+		s.particleSystemSolver2.collider.resolveCollision(
+			radius,
+			s.particleSystemSolver2.restitutionCoefficient,
+			&s.particleSystemSolver2.newPositions[i],
+			&s.particleSystemSolver2.newVelocities[i],
+		)
+		s.particleSystemData.particleSystemData.vectorDataList[s.particleSystemData.particleSystemData.velocityIdx][i] =
+			s.particleSystemSolver2.newVelocities[i]
+		s.particleSystemData.particleSystemData.vectorDataList[s.particleSystemData.particleSystemData.positionIdx][i] =
+			s.particleSystemSolver2.newPositions[i]
+	}
+}
+
+func (s *SphSolver2) endAdvanceTimeStep(timeStepInSeconds float64) {
+	// Update data.
+	n := s.particleSystemData.particleSystemData.numberOfParticles
+	positions := s.particleSystemData.positions()
+	velocities := s.particleSystemData.velocities()
+
+	for i := 0; i < int(n); i++ {
+
+		positions[i] = s.particleSystemSolver2.newPositions[i]
+		velocities[i] = s.particleSystemSolver2.newVelocities[i]
+	}
+
+	s.onEndAdvanceTimeStep(timeStepInSeconds)
+}
+
+func (s *SphSolver2) onEndAdvanceTimeStep(timeStepInSeconds float64) {
+	s.computePseudoViscosity(timeStepInSeconds)
+}
+
+func (s *SphSolver2) computePseudoViscosity(timeStepInSeconds float64) {
+
+	particles := s.particleSystemData
+	numberOfParticles := s.particleSystemData.particleSystemData.numberOfParticles
+	x := particles.positions()
+	d := particles.densities()
+	v := particles.velocities()
+	mass := particles.particleSystemData.mass
+	kernel := NewSphSpikyKernel2(s.particleSystemData.kernelRadius)
+
+	smoothedVelocities := make([]*Vector3D, 0, 0)
+
+	for i := 0; i < int(numberOfParticles); i++ {
+
+		weightSum := 0.0
+		smoothedVelocity := NewVector(0, 0, 0)
+		neighbors := s.particleSystemData.particleSystemData.neighborLists[i]
+
+		for _, j := range neighbors {
+			dist := x[i].distanceTo(x[j])
+			wj := mass / d[j] * kernel.operatorKernel(dist)
+			weightSum += wj
+
+			a := v[j].Multiply(wj)
+			smoothedVelocity = smoothedVelocity.Add(a)
+		}
+
+		wi := mass / d[i]
+		weightSum += wi
+		a := v[i].Multiply(wi)
+		smoothedVelocity = smoothedVelocity.Add(a)
+
+		if weightSum > 0.0 {
+			smoothedVelocity = smoothedVelocity.Divide(weightSum)
+		}
+		smoothedVelocities = append(smoothedVelocities, smoothedVelocity)
+	}
+
+	factor := timeStepInSeconds * s.pseudoViscosityCoefficient
+	factor = mathHelper.Clamp(
+		factor,
+		0,
+		1,
+	)
+	_, _, _, _, _ = particles, mass, kernel, smoothedVelocities, x
 }

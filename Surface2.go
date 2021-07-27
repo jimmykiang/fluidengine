@@ -1,5 +1,13 @@
 package main
 
+type Surface2IF interface {
+	closestPoint(otherPoint *Vector3D) *Vector3D
+	closestDistance(point *Vector3D) float64
+	closestNormal(point *Vector3D) *Vector3D
+	getTransform() *Transform2
+	isInside(position *Vector3D) bool
+}
+
 type Surface2 struct {
 
 	// Local-to-world transform.

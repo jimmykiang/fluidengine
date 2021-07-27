@@ -34,6 +34,16 @@ func (t *Transform2) toWorld(bboxInLocal *BoundingBox2D) *BoundingBox2D {
 	return bboxInWorld
 }
 
+// toWorld transforms a bounding box in local space to the world coordinate.
+func (t *Transform2) toWorldArgVector(pointInLocal *Vector3D) *Vector3D {
+
+	return NewVector(
+		(t.cosAngle*pointInLocal.x)-(t.sinAngle*pointInLocal.y+t.translation.x),
+		(t.sinAngle*pointInLocal.x)-(t.cosAngle*pointInLocal.y+t.translation.y),
+		0,
+	)
+}
+
 // Transforms a point in local space to the world coordinate.
 func (t *Transform2) toWorldPointInLocal(pointInLocal *Vector3D) *Vector3D {
 
@@ -52,5 +62,13 @@ func (t *Transform2) toLocal(pointInWorld *Vector3D) *Vector3D {
 
 	x := t.cosAngle*xmt.x + t.sinAngle*xmt.y
 	y := -t.sinAngle*xmt.x + t.cosAngle*xmt.y
+	return NewVector(x, y, 0)
+}
+
+func (t *Transform2) toWorldDirection(dirInLocal *Vector3D) *Vector3D {
+	// Convert to the world frame.
+
+	x := t.cosAngle*dirInLocal.x - t.sinAngle*dirInLocal.y
+	y := t.sinAngle*dirInLocal.x + t.cosAngle*dirInLocal.y
 	return NewVector(x, y, 0)
 }

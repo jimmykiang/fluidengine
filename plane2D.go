@@ -1,7 +1,6 @@
 package main
 
 //type ImplicitSurface2 Plane2D + Sphere2D
-
 type ImplicitSurface2 interface {
 	isBounded() bool
 	boundingBox() *BoundingBox2D
