@@ -1,5 +1,7 @@
 package main
 
+import "jimmykiang/fluidengine/Vector3D"
+
 // Sphere2 is a 2-D sphere geometry.
 // Represents 2-D sphere geometry which extends Surface2 by
 // overriding surface-related queries.
@@ -9,7 +11,7 @@ type Sphere2 struct {
 	surface2 *Surface2
 
 	// Center of the sphere.
-	center *Vector3D
+	center *Vector3D.Vector3D
 
 	//Radius of the sphere.
 	radius float64
@@ -21,7 +23,7 @@ type Sphere2 struct {
 	isNormalFlipped bool
 }
 
-func NewSphere2(center *Vector3D, radius float64) *Sphere2 {
+func NewSphere2(center *Vector3D.Vector3D, radius float64) *Sphere2 {
 	return &Sphere2{
 		surface2:        NewSurface2(),
 		center:          center,
@@ -44,13 +46,13 @@ func (s *Sphere2) isBounded() bool {
 // boundingBox returns the bounding box of this surface object.
 func (s *Sphere2) boundingBox() *BoundingBox2D {
 
-	r := NewVector(s.radius, s.radius, 0)
+	r := Vector3D.NewVector(s.radius, s.radius, 0)
 	return s.transform.toWorld(NewBoundingBox2D(s.center.Substract(r), s.center.Add(r)))
 }
 
 // Returns true if otherPoint is inside by given depth the volume
 // defined by the surface in local frame.
-func (s *Sphere2) isInsideLocal(otherPointLocal *Vector3D) bool {
+func (s *Sphere2) isInsideLocal(otherPointLocal *Vector3D.Vector3D) bool {
 
 	cpLocal := s.closestPointLocal(otherPointLocal)
 	normalLocal := s.closestNormalLocal(otherPointLocal)
@@ -59,7 +61,7 @@ func (s *Sphere2) isInsideLocal(otherPointLocal *Vector3D) bool {
 }
 
 // Returns the closest point from the given point otherPoint to the surface.
-func (s *Sphere2) closestPoint(otherPoint *Vector3D) *Vector3D {
+func (s *Sphere2) closestPoint(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 	// Returns the closest distance from the given point otherPoint to the
 	// point on the surface in local frame.
@@ -69,10 +71,10 @@ func (s *Sphere2) closestPoint(otherPoint *Vector3D) *Vector3D {
 	return s.transform.toWorldPointInLocal(d)
 }
 
-func (s *Sphere2) closestNormalLocal(otherPoint *Vector3D) *Vector3D {
+func (s *Sphere2) closestNormalLocal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 
-	if s.center.isSimilar(otherPoint) {
-		return NewVector(1, 0, 0)
+	if s.center.IsSimilar(otherPoint) {
+		return Vector3D.NewVector(1, 0, 0)
 	} else {
 
 		return otherPoint.Substract(s.center).Normalize()
@@ -80,7 +82,7 @@ func (s *Sphere2) closestNormalLocal(otherPoint *Vector3D) *Vector3D {
 
 }
 
-func (s *Sphere2) closestPointLocal(otherPoint *Vector3D) *Vector3D {
+func (s *Sphere2) closestPointLocal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 	r := s.closestNormalLocal(otherPoint).Multiply(s.radius)
 
@@ -89,12 +91,12 @@ func (s *Sphere2) closestPointLocal(otherPoint *Vector3D) *Vector3D {
 }
 
 // Returns true if otherPoint is inside the volume defined by the surface.
-func (s *Sphere2) isInside(otherPoint *Vector3D) bool {
+func (s *Sphere2) isInside(otherPoint *Vector3D.Vector3D) bool {
 
 	return s.isNormalFlipped == !s.isInsideLocal(s.transform.toLocal(otherPoint))
 }
 
-func (s *Sphere2) signedDistance(otherPoint *Vector3D) float64 {
+func (s *Sphere2) signedDistance(otherPoint *Vector3D.Vector3D) float64 {
 
 	x := s.closestPoint(s.transform.toLocal(otherPoint))
 
@@ -102,9 +104,9 @@ func (s *Sphere2) signedDistance(otherPoint *Vector3D) float64 {
 
 	sd := 0.0
 	if inside {
-		sd = -x.distanceTo(otherPoint)
+		sd = -x.DistanceTo(otherPoint)
 	} else {
-		sd = x.distanceTo(otherPoint)
+		sd = x.DistanceTo(otherPoint)
 	}
 	if s.isNormalFlipped {
 		sd = -sd

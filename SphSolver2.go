@@ -1,6 +1,8 @@
 package main
 
 import (
+	Vector3D "jimmykiang/fluidengine/Vector3D"
+	"jimmykiang/fluidengine/constants"
 	mathHelper "jimmykiang/fluidengine/mathHelper"
 	physicsHelper "jimmykiang/fluidengine/physicsHelper"
 	"math"
@@ -93,8 +95,8 @@ func (s *SphSolver2) numberOfSubTimeSteps(timeIntervalInSeconds float64) int64 {
 		maxForceMagnitude = math.Max(maxForceMagnitude, f[i].Length())
 	}
 
-	timeStepLimitBySpeed := kTimeStepLimitBySpeedFactor * kernelRadius / s.speedOfSound
-	timeStepLimitByForce := kTimeStepLimitByForceFactor * math.Sqrt(kernelRadius*mass/maxForceMagnitude)
+	timeStepLimitBySpeed := constants.KTimeStepLimitBySpeedFactor * kernelRadius / s.speedOfSound
+	timeStepLimitByForce := constants.KTimeStepLimitByForceFactor * math.Sqrt(kernelRadius*mass/maxForceMagnitude)
 	desiredTimeStep := s.timeStepLimitScale * math.Min(timeStepLimitBySpeed, timeStepLimitByForce)
 	return int64(math.Ceil(timeIntervalInSeconds / desiredTimeStep))
 }
@@ -109,7 +111,7 @@ func (s *SphSolver2) advanceTimeStep(timeIntervalInSeconds float64) {
 	// Perform adaptive time-stepping
 	remainingTime := timeIntervalInSeconds
 
-	if remainingTime > kEpsilonD {
+	if remainingTime > constants.KEpsilonD {
 
 		numSteps := s.numberOfSubTimeSteps(remainingTime)
 		actualTimeInterval := remainingTime / float64(numSteps)
@@ -136,8 +138,8 @@ func (s *SphSolver2) updateCollider(timeStepInSeconds float64) {
 func (s *SphSolver2) resize(size int64) {
 
 	for i := int64(0); i < size-1; i++ {
-		s.particleSystemSolver2.newPositions = append(s.particleSystemSolver2.newPositions, NewVector(0, 0, 0))
-		s.particleSystemSolver2.newVelocities = append(s.particleSystemSolver2.newVelocities, NewVector(0, 0, 0))
+		s.particleSystemSolver2.newPositions = append(s.particleSystemSolver2.newPositions, Vector3D.NewVector(0, 0, 0))
+		s.particleSystemSolver2.newVelocities = append(s.particleSystemSolver2.newVelocities, Vector3D.NewVector(0, 0, 0))
 	}
 }
 
@@ -146,7 +148,7 @@ func (s *SphSolver2) beginAdvanceTimeStep(timeStepInSeconds float64) {
 	// Clear forces.
 	forces := s.particleSystemData.forces()
 	for i := 0; i < len(forces); i++ {
-		forces[i] = NewVector(0, 0, 0)
+		forces[i] = Vector3D.NewVector(0, 0, 0)
 	}
 
 	// Update collider and emitter.
@@ -216,7 +218,7 @@ func (s *SphSolver2) accumulateViscosityForce() {
 		neighbors := particles.neighborLists[i]
 
 		for _, j := range neighbors {
-			dist := x[i].distanceTo(x[j])
+			dist := x[i].DistanceTo(x[j])
 
 			a := s.viscosityCoefficient * massSquared * kernel.secondDerivative(dist)
 			b := v[j].Substract(v[i])
@@ -260,10 +262,10 @@ func (s *SphSolver2) computePressure() {
 }
 
 func (s *SphSolver2) accumulatePressureForceInternal(
-	positions []*Vector3D,
+	positions []*Vector3D.Vector3D,
 	densities []float64,
 	pressures []float64,
-	pressureForces []*Vector3D,
+	pressureForces []*Vector3D.Vector3D,
 ) {
 	particles := s.particleSystemData.particleSystemData
 	numberOfParticles := particles.numberOfParticles
@@ -273,7 +275,7 @@ func (s *SphSolver2) accumulatePressureForceInternal(
 	for i := int64(0); i < numberOfParticles; i++ {
 		neighbors := particles.neighborLists[i]
 		for _, j := range neighbors {
-			dist := positions[i].distanceTo(positions[j])
+			dist := positions[i].DistanceTo(positions[j])
 
 			if dist > 0.0 {
 				a := positions[j].Substract(positions[i])
@@ -363,16 +365,16 @@ func (s *SphSolver2) computePseudoViscosity(timeStepInSeconds float64) {
 	mass := particles.particleSystemData.mass
 	kernel := NewSphSpikyKernel2(s.particleSystemData.kernelRadius)
 
-	smoothedVelocities := make([]*Vector3D, 0, 0)
+	smoothedVelocities := make([]*Vector3D.Vector3D, 0, 0)
 
 	for i := 0; i < int(numberOfParticles); i++ {
 
 		weightSum := 0.0
-		smoothedVelocity := NewVector(0, 0, 0)
+		smoothedVelocity := Vector3D.NewVector(0, 0, 0)
 		neighbors := s.particleSystemData.particleSystemData.neighborLists[i]
 
 		for _, j := range neighbors {
-			dist := x[i].distanceTo(x[j])
+			dist := x[i].DistanceTo(x[j])
 			wj := mass / d[j] * kernel.operatorKernel(dist)
 			weightSum += wj
 
@@ -397,5 +399,10 @@ func (s *SphSolver2) computePseudoViscosity(timeStepInSeconds float64) {
 		0,
 		1,
 	)
+
+	for i := int64(0); i < numberOfParticles; i++ {
+
+		//v[i] = mathHelper.lerp(v[i], smoothedVelocities[i], factor)
+	}
 	_, _, _, _, _ = particles, mass, kernel, smoothedVelocities, x
 }

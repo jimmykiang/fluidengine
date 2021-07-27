@@ -1,11 +1,13 @@
 package main
 
+import "jimmykiang/fluidengine/Vector3D"
+
 type Surface2IF interface {
-	closestPoint(otherPoint *Vector3D) *Vector3D
-	closestDistance(point *Vector3D) float64
-	closestNormal(point *Vector3D) *Vector3D
+	closestPoint(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D
+	closestDistance(point *Vector3D.Vector3D) float64
+	closestNormal(point *Vector3D.Vector3D) *Vector3D.Vector3D
 	getTransform() *Transform2
-	isInside(position *Vector3D) bool
+	isInside(position *Vector3D.Vector3D) bool
 }
 
 type Surface2 struct {

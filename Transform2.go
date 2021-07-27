@@ -1,7 +1,9 @@
 package main
 
+import Vector3D "jimmykiang/fluidengine/Vector3D"
+
 type Transform2 struct {
-	translation *Vector3D
+	translation *Vector3D.Vector3D
 	orientation float64
 	cosAngle    float64
 	sinAngle    float64
@@ -9,7 +11,7 @@ type Transform2 struct {
 
 func NewTransform2() *Transform2 {
 	return &Transform2{
-		translation: NewVector(0, 0, 0),
+		translation: Vector3D.NewVector(0, 0, 0),
 		orientation: 0,
 		cosAngle:    1,
 		sinAngle:    0,
@@ -24,51 +26,51 @@ func (t *Transform2) toWorld(bboxInLocal *BoundingBox2D) *BoundingBox2D {
 	for i := 0; i < 4; i++ {
 		cornerInWorld := t.toWorldPointInLocal(bboxInLocal.corner(i))
 
-		a := bboxInWorld.lowerCorner.min(cornerInWorld)
-		bboxInWorld.lowerCorner = NewVector(a.x, a.y, 0)
+		a := bboxInWorld.lowerCorner.Min(cornerInWorld)
+		bboxInWorld.lowerCorner = Vector3D.NewVector(a.X, a.Y, 0)
 
-		b := bboxInWorld.upperCorner.max(cornerInWorld)
-		bboxInWorld.upperCorner = NewVector(b.x, b.y, 0)
+		b := bboxInWorld.upperCorner.Max(cornerInWorld)
+		bboxInWorld.upperCorner = Vector3D.NewVector(b.X, b.Y, 0)
 	}
 
 	return bboxInWorld
 }
 
 // toWorld transforms a bounding box in local space to the world coordinate.
-func (t *Transform2) toWorldArgVector(pointInLocal *Vector3D) *Vector3D {
+func (t *Transform2) toWorldArgVector(pointInLocal *Vector3D.Vector3D) *Vector3D.Vector3D {
 
-	return NewVector(
-		(t.cosAngle*pointInLocal.x)-(t.sinAngle*pointInLocal.y+t.translation.x),
-		(t.sinAngle*pointInLocal.x)-(t.cosAngle*pointInLocal.y+t.translation.y),
+	return Vector3D.NewVector(
+		(t.cosAngle*pointInLocal.X)-(t.sinAngle*pointInLocal.Y+t.translation.X),
+		(t.sinAngle*pointInLocal.X)-(t.cosAngle*pointInLocal.Y+t.translation.Y),
 		0,
 	)
 }
 
 // Transforms a point in local space to the world coordinate.
-func (t *Transform2) toWorldPointInLocal(pointInLocal *Vector3D) *Vector3D {
+func (t *Transform2) toWorldPointInLocal(pointInLocal *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 	// Convert to the world frame.
-	x := t.cosAngle*pointInLocal.x - t.sinAngle*pointInLocal.y + t.translation.x
-	y := t.sinAngle*pointInLocal.x + t.cosAngle*pointInLocal.y + t.translation.y
+	x := t.cosAngle*pointInLocal.X - t.sinAngle*pointInLocal.Y + t.translation.X
+	y := t.sinAngle*pointInLocal.X + t.cosAngle*pointInLocal.Y + t.translation.Y
 
-	return NewVector(x, y, 0)
+	return Vector3D.NewVector(x, y, 0)
 }
 
 // Transforms a point in world coordinate to the local frame.
-func (t *Transform2) toLocal(pointInWorld *Vector3D) *Vector3D {
+func (t *Transform2) toLocal(pointInWorld *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 	// Convert to the local frame.
 	xmt := pointInWorld.Substract(t.translation)
 
-	x := t.cosAngle*xmt.x + t.sinAngle*xmt.y
-	y := -t.sinAngle*xmt.x + t.cosAngle*xmt.y
-	return NewVector(x, y, 0)
+	x := t.cosAngle*xmt.X + t.sinAngle*xmt.Y
+	y := -t.sinAngle*xmt.X + t.cosAngle*xmt.Y
+	return Vector3D.NewVector(x, y, 0)
 }
 
-func (t *Transform2) toWorldDirection(dirInLocal *Vector3D) *Vector3D {
+func (t *Transform2) toWorldDirection(dirInLocal *Vector3D.Vector3D) *Vector3D.Vector3D {
 	// Convert to the world frame.
 
-	x := t.cosAngle*dirInLocal.x - t.sinAngle*dirInLocal.y
-	y := t.sinAngle*dirInLocal.x + t.cosAngle*dirInLocal.y
-	return NewVector(x, y, 0)
+	x := t.cosAngle*dirInLocal.X - t.sinAngle*dirInLocal.Y
+	y := t.sinAngle*dirInLocal.X + t.cosAngle*dirInLocal.Y
+	return Vector3D.NewVector(x, y, 0)
 }

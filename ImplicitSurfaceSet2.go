@@ -1,6 +1,9 @@
 package main
 
-import "math"
+import (
+	"jimmykiang/fluidengine/Vector3D"
+	"math"
+)
 
 // ImplicitSurfaceSet2 represents 2-D implicit surface set.
 type ImplicitSurfaceSet2 struct {
@@ -71,7 +74,7 @@ func (s *ImplicitSurfaceSet2) isBounded() bool {
 	return len(s.surfaces) != 0
 }
 
-func (s *ImplicitSurfaceSet2) signedDistance(candidate *Vector3D) float64 {
+func (s *ImplicitSurfaceSet2) signedDistance(candidate *Vector3D.Vector3D) float64 {
 	sdf := math.MaxFloat64
 	for _, surface := range s.surfaces {
 

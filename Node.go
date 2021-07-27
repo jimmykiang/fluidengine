@@ -1,5 +1,7 @@
 package main
 
+import "jimmykiang/fluidengine/constants"
+
 type Node struct {
 	flags string
 	bound *BoundingBox2D
@@ -11,8 +13,8 @@ func NewNode() *Node {
 	return &Node{
 		flags: "0",
 		bound: NewBoundingBox2DReset(),
-		child: kMaxSize,
-		item:  kMaxSize,
+		child: constants.KMaxSize,
+		item:  constants.KMaxSize,
 	}
 }
 

@@ -1,5 +1,7 @@
 package main
 
+import "jimmykiang/fluidengine/constants"
+
 // SphStdKernel2 is a standard 2-D SPH kernel function object.
 type SphStdKernel2 struct {
 
@@ -34,6 +36,6 @@ func (s *SphStdKernel2) operatorKernel(distance float64) float64 {
 		return 0.0
 	} else {
 		x := 1 - distanceSquared/s.h2
-		return 4.0 / (kPiD * s.h2) * x * x * x
+		return 4.0 / (constants.KPiD * s.h2) * x * x * x
 	}
 }

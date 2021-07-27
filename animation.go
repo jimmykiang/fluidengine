@@ -1,6 +1,9 @@
 package main
 
-import "math"
+import (
+	"jimmykiang/fluidengine/Vector3D"
+	"math"
+)
 
 // Animation represents the base interface for the animation logic in its base level.
 type Animation interface {
@@ -43,17 +46,17 @@ func NewEdge(first, second int) *Edge {
 // Constraint by fixing the position of a point.
 type Constraint struct {
 	pointIndex    int
-	fixedPosition *Vector3D
-	fixedVelocity *Vector3D
+	fixedPosition *Vector3D.Vector3D
+	fixedVelocity *Vector3D.Vector3D
 }
 
 // SimpleMassSpringAnimation contains the data for a mass-spring animation solver.
 type SimpleMassSpringAnimation struct {
-	positions, velocities, forces                           []*Vector3D
+	positions, velocities, forces                           []*Vector3D.Vector3D
 	edges                                                   []*Edge
 	mass, stiffness, restLength, dampingCoefficient         float64
 	dragCoefficient, floorPositionY, restitutionCoefficient float64
-	gravity, wind                                           *Vector3D
+	gravity, wind                                           *Vector3D.Vector3D
 	constraints                                             []*Constraint
 }
 
@@ -61,7 +64,7 @@ type SimpleMassSpringAnimation struct {
 func NewSimpleMassSpringAnimation() *SimpleMassSpringAnimation {
 	simpleMassSpringAnimation := &SimpleMassSpringAnimation{
 		mass:                   1.0,
-		gravity:                NewVector(0.0, -9.8, 0.0),
+		gravity:                Vector3D.NewVector(0.0, -9.8, 0.0),
 		stiffness:              100.0,
 		restLength:             1.0,
 		dampingCoefficient:     1.0,
@@ -81,20 +84,20 @@ func (anim *SimpleMassSpringAnimation) makeChain(numberOfPoints int) {
 	}
 
 	numberOfEdges := numberOfPoints - 1
-	anim.positions = make([]*Vector3D, numberOfPoints)
-	anim.velocities = make([]*Vector3D, numberOfPoints)
-	anim.forces = make([]*Vector3D, numberOfPoints)
+	anim.positions = make([]*Vector3D.Vector3D, numberOfPoints)
+	anim.velocities = make([]*Vector3D.Vector3D, numberOfPoints)
+	anim.forces = make([]*Vector3D.Vector3D, numberOfPoints)
 
 	for x := 0; x < numberOfPoints; x++ {
-		anim.velocities[x] = NewVector(0, 0, 0)
-		anim.forces[x] = NewVector(0, 0, 0)
+		anim.velocities[x] = Vector3D.NewVector(0, 0, 0)
+		anim.forces[x] = Vector3D.NewVector(0, 0, 0)
 	}
 
 	anim.edges = make([]*Edge, numberOfEdges)
 
 	for i := 0; i < numberOfPoints; i++ {
 
-		anim.positions[i] = NewVector(-float64(i), 20, 0)
+		anim.positions[i] = Vector3D.NewVector(-float64(i), 20, 0)
 	}
 
 	for i := 0; i < numberOfEdges; i++ {
@@ -111,8 +114,8 @@ func (anim *SimpleMassSpringAnimation) exportStates(x *[]float64, y *[]float64) 
 
 	for i := 0; i < len(anim.positions); i++ {
 
-		(*x)[i] = anim.positions[i].x
-		(*y)[i] = anim.positions[i].y
+		(*x)[i] = anim.positions[i].X
+		(*y)[i] = anim.positions[i].Y
 	}
 }
 
@@ -175,13 +178,13 @@ func (anim *SimpleMassSpringAnimation) onUpdate(frame *Frame) {
 		newPosition := anim.positions[i].Add(newVelocity.Multiply(frame.timeIntervalInSeconds))
 
 		// Collision.
-		if newPosition.y < anim.floorPositionY {
+		if newPosition.Y < anim.floorPositionY {
 
-			newPosition.y = anim.floorPositionY
-			if newVelocity.y < 0.0 {
+			newPosition.Y = anim.floorPositionY
+			if newVelocity.Y < 0.0 {
 
-				newVelocity.y *= -anim.restitutionCoefficient
-				newPosition.y += frame.timeIntervalInSeconds * newVelocity.y
+				newVelocity.Y *= -anim.restitutionCoefficient
+				newPosition.Y += frame.timeIntervalInSeconds * newVelocity.Y
 			}
 		}
 

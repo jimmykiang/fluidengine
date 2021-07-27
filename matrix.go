@@ -1,6 +1,9 @@
 package main
 
-import "math"
+import (
+	"jimmykiang/fluidengine/Vector3D"
+	"math"
+)
 
 // Matrix is a new type defined by a double slice of float64.
 type Matrix [][]float64
@@ -26,9 +29,9 @@ func New3x3IdentityMatrix() Matrix {
 }
 
 // MultiplyMatrixByTuple returns the multiplication of a Matrix by a Tuple.
-func (matrix Matrix) MultiplyMatrixByTuple(vector *Vector3D) *Vector3D {
-	tupleAsMatrix := []float64{vector.x, vector.y, vector.z}
-	newTup := &Vector3D{
+func (matrix Matrix) MultiplyMatrixByTuple(vector *Vector3D.Vector3D) *Vector3D.Vector3D {
+	tupleAsMatrix := []float64{vector.X, vector.Y, vector.Z}
+	newTup := &Vector3D.Vector3D{
 		matrix.dotProducOfMatricesRowColumn(matrix.Row(0), tupleAsMatrix),
 		matrix.dotProducOfMatricesRowColumn(matrix.Row(1), tupleAsMatrix),
 		matrix.dotProducOfMatricesRowColumn(matrix.Row(2), tupleAsMatrix),

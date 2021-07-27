@@ -1,6 +1,8 @@
 package main
 
 import (
+	"jimmykiang/fluidengine/Vector3D"
+	"jimmykiang/fluidengine/constants"
 	"math"
 )
 
@@ -10,8 +12,8 @@ import (
 // its corresponding bucket where the hashing function is 3-D grid mapping.
 type PointParallelHashGridSearcher3 struct {
 	gridSpacing     float64
-	resolution      *Vector3D
-	points          []*Vector3D
+	resolution      *Vector3D.Vector3D
+	points          []*Vector3D.Vector3D
 	startIndexTable []int64
 	endIndexTable   []int64
 	sortedIndices   []int64
@@ -26,12 +28,12 @@ func NewPointParallelHashGridSearcher3(
 ) *PointParallelHashGridSearcher3 {
 	return &PointParallelHashGridSearcher3{
 		gridSpacing: gridSpacing,
-		resolution: NewVector(
-			math.Max(resolutionX, kOneSSize),
-			math.Max(resolutionY, kOneSSize),
-			math.Max(resolutionZ, kOneSSize),
+		resolution: Vector3D.NewVector(
+			math.Max(resolutionX, constants.KOneSSize),
+			math.Max(resolutionY, constants.KOneSSize),
+			math.Max(resolutionZ, constants.KOneSSize),
 		),
-		points:          make([]*Vector3D, 0, 0),
+		points:          make([]*Vector3D.Vector3D, 0, 0),
 		startIndexTable: make([]int64, 0, 0),
 		endIndexTable:   make([]int64, 0, 0),
 		sortedIndices:   make([]int64, 0, 0),
@@ -39,7 +41,7 @@ func NewPointParallelHashGridSearcher3(
 	}
 }
 
-func (s *PointParallelHashGridSearcher3) build(points []*Vector3D) {
+func (s *PointParallelHashGridSearcher3) build(points []*Vector3D.Vector3D) {
 
 	// Allocate memory chuncks.
 	numberOfPoints := len(points)
@@ -50,12 +52,12 @@ func (s *PointParallelHashGridSearcher3) build(points []*Vector3D) {
 	}
 
 	s.startIndexTable = make([]int64, 0, 0)
-	for i := 0; i < int(s.resolution.x*s.resolution.y); i++ {
+	for i := 0; i < int(s.resolution.X*s.resolution.Y); i++ {
 		s.startIndexTable = append(s.startIndexTable, math.MaxInt64)
 	}
 
 	s.endIndexTable = make([]int64, 0, 0)
-	for i := 0; i < int(s.resolution.x*s.resolution.y); i++ {
+	for i := 0; i < int(s.resolution.X*s.resolution.Y); i++ {
 		s.endIndexTable = append(s.endIndexTable, math.MaxInt64)
 	}
 
@@ -69,9 +71,9 @@ func (s *PointParallelHashGridSearcher3) build(points []*Vector3D) {
 		s.sortedIndices = append(s.sortedIndices, 0)
 	}
 
-	s.points = make([]*Vector3D, 0, 0)
+	s.points = make([]*Vector3D.Vector3D, 0, 0)
 	for i := 0; i < numberOfPoints; i++ {
-		s.points = append(s.points, NewVector(0, 0, 0))
+		s.points = append(s.points, Vector3D.NewVector(0, 0, 0))
 	}
 
 	if numberOfPoints == 0 {
@@ -154,41 +156,41 @@ func (s *PointParallelHashGridSearcher3) build(points []*Vector3D) {
 	}
 }
 
-func (s *PointParallelHashGridSearcher3) getHashKeyFromPosition(position *Vector3D) int64 {
+func (s *PointParallelHashGridSearcher3) getHashKeyFromPosition(position *Vector3D.Vector3D) int64 {
 	bucketIndex := s.getBucketIndex(position)
 
 	return s.getHashKeyFromBucketIndex(bucketIndex)
 }
 
-func (s *PointParallelHashGridSearcher3) getBucketIndex(position *Vector3D) *Vector3D {
-	bucketIndex := NewVector(0, 0, 0)
-	bucketIndex.x = math.Floor(position.x / s.gridSpacing)
-	bucketIndex.y = math.Floor(position.y / s.gridSpacing)
+func (s *PointParallelHashGridSearcher3) getBucketIndex(position *Vector3D.Vector3D) *Vector3D.Vector3D {
+	bucketIndex := Vector3D.NewVector(0, 0, 0)
+	bucketIndex.X = math.Floor(position.X / s.gridSpacing)
+	bucketIndex.Y = math.Floor(position.Y / s.gridSpacing)
 	return bucketIndex
 }
 
-func (s *PointParallelHashGridSearcher3) getHashKeyFromBucketIndex(bucketIndex *Vector3D) int64 {
+func (s *PointParallelHashGridSearcher3) getHashKeyFromBucketIndex(bucketIndex *Vector3D.Vector3D) int64 {
 
-	wrappedIndex := NewVector(bucketIndex.x, bucketIndex.y, 0)
-	wrappedIndex.x = float64(int64(bucketIndex.x) % int64(s.resolution.x))
-	wrappedIndex.y = float64(int64(bucketIndex.y) % int64(s.resolution.y))
+	wrappedIndex := Vector3D.NewVector(bucketIndex.X, bucketIndex.Y, 0)
+	wrappedIndex.X = float64(int64(bucketIndex.X) % int64(s.resolution.X))
+	wrappedIndex.Y = float64(int64(bucketIndex.Y) % int64(s.resolution.Y))
 
-	if wrappedIndex.x < 0 {
-		wrappedIndex.x += s.resolution.x
+	if wrappedIndex.X < 0 {
+		wrappedIndex.X += s.resolution.X
 	}
-	if wrappedIndex.y < 0 {
-		wrappedIndex.y += s.resolution.y
+	if wrappedIndex.Y < 0 {
+		wrappedIndex.Y += s.resolution.Y
 	}
 
-	return int64(wrappedIndex.y*s.resolution.x + wrappedIndex.x)
+	return int64(wrappedIndex.Y*s.resolution.X + wrappedIndex.X)
 }
 
 func (s *PointParallelHashGridSearcher3) forEachNearbyPoint(
-	origin *Vector3D,
+	origin *Vector3D.Vector3D,
 	radius float64,
 	iExternal int64,
 	sum *float64,
-	callback func(int64, int64, *Vector3D, *Vector3D, *float64),
+	callback func(int64, int64, *Vector3D.Vector3D, *Vector3D.Vector3D, *float64),
 ) {
 	nearbyKeys := make([]int64, 4, 4)
 
@@ -218,31 +220,31 @@ func (s *PointParallelHashGridSearcher3) forEachNearbyPoint(
 }
 
 func (s *PointParallelHashGridSearcher3) getNearbyKeys(
-	position *Vector3D,
+	position *Vector3D.Vector3D,
 	nearbyKeys []int64,
 ) {
 	originIndex := s.getBucketIndex(position)
 
-	nearbyBucketIndices := make([]*Vector3D, 0, 0)
+	nearbyBucketIndices := make([]*Vector3D.Vector3D, 0, 0)
 
 	for i := 0; i < 4; i++ {
-		nearbyBucketIndices = append(nearbyBucketIndices, NewVector(originIndex.x, originIndex.y, 0))
+		nearbyBucketIndices = append(nearbyBucketIndices, Vector3D.NewVector(originIndex.X, originIndex.Y, 0))
 	}
 
-	if (originIndex.x + 0.5*s.gridSpacing) < position.x {
-		nearbyBucketIndices[2].x += 1
-		nearbyBucketIndices[3].x += 1
+	if (originIndex.X + 0.5*s.gridSpacing) < position.X {
+		nearbyBucketIndices[2].X += 1
+		nearbyBucketIndices[3].X += 1
 	} else {
-		nearbyBucketIndices[2].x -= 1
-		nearbyBucketIndices[3].x -= 1
+		nearbyBucketIndices[2].X -= 1
+		nearbyBucketIndices[3].X -= 1
 	}
 
-	if (originIndex.y + 0.5*s.gridSpacing) < position.x {
-		nearbyBucketIndices[1].y += 1
-		nearbyBucketIndices[3].y += 1
+	if (originIndex.X + 0.5*s.gridSpacing) < position.X {
+		nearbyBucketIndices[1].Y += 1
+		nearbyBucketIndices[3].Y += 1
 	} else {
-		nearbyBucketIndices[1].y -= 1
-		nearbyBucketIndices[3].y -= 1
+		nearbyBucketIndices[1].Y -= 1
+		nearbyBucketIndices[3].Y -= 1
 	}
 
 	for i := 0; i < 4; i++ {

@@ -1,6 +1,10 @@
 package main
 
-import "math"
+import (
+	"jimmykiang/fluidengine/Vector3D"
+	"jimmykiang/fluidengine/constants"
+	"math"
+)
 
 // SphSystemData2 is a 2-D SPH particle system data.
 // Extends ParticleSystemData2 to specialize the data model for SPH.
@@ -25,7 +29,7 @@ type SphSystemData2 struct {
 func NewSphSystemData2() *SphSystemData2 {
 	s := &SphSystemData2{
 		particleSystemData:            NewParticleSystemData3(),
-		targetDensity:                 kWaterDensity,
+		targetDensity:                 constants.KWaterDensity,
 		targetSpacing:                 0.2,
 		kernelRadiusOverTargetSpacing: 1.8,
 		kernelRadius:                  1,
@@ -50,12 +54,12 @@ func (s *SphSystemData2) setTargetSpacing(spacing float64) {
 
 func (s *SphSystemData2) computeMass() {
 
-	points := make([]*Vector3D, 0)
+	points := make([]*Vector3D.Vector3D, 0)
 	pointsGenerator := NewTrianglePointGenerator()
 
 	sampleBound := NewBoundingBox2D(
-		NewVector(-1.5*s.kernelRadius, -1.5*s.kernelRadius, 0),
-		NewVector(1.5*s.kernelRadius, 1.5*s.kernelRadius, 0),
+		Vector3D.NewVector(-1.5*s.kernelRadius, -1.5*s.kernelRadius, 0),
+		Vector3D.NewVector(1.5*s.kernelRadius, 1.5*s.kernelRadius, 0),
 	)
 	pointsGenerator.generate(sampleBound, s.targetSpacing, &points)
 
@@ -69,7 +73,7 @@ func (s *SphSystemData2) computeMass() {
 		for j := 0; j < len(points); j++ {
 
 			neighborPoint := points[j]
-			x := neighborPoint.distanceTo(point)
+			x := neighborPoint.DistanceTo(point)
 			sum += kernel.operatorKernel(x)
 		}
 		maxNumberDensity = math.Max(maxNumberDensity, sum)
@@ -84,20 +88,20 @@ func (s *SphSystemData2) setTargetDensity(targetDensity float64) {
 	s.computeMass()
 }
 
-func (s *SphSystemData2) addParticle(newPosition, newVelocity, newForce *Vector3D) {
+func (s *SphSystemData2) addParticle(newPosition, newVelocity, newForce *Vector3D.Vector3D) {
 
-	newPositions := make([]*Vector3D, 0)
+	newPositions := make([]*Vector3D.Vector3D, 0)
 	newPositions = append(newPositions, newPosition)
-	newVelocities := make([]*Vector3D, 0)
+	newVelocities := make([]*Vector3D.Vector3D, 0)
 	newVelocities = append(newVelocities, newVelocity)
-	newForces := make([]*Vector3D, 0)
+	newForces := make([]*Vector3D.Vector3D, 0)
 	newForces = append(newForces, newForce)
 
 	(*s).addParticles(newPositions, newVelocities, newForces)
 
 }
 
-func (s *SphSystemData2) addParticles(newPositions, newVelocities, newForces []*Vector3D) {
+func (s *SphSystemData2) addParticles(newPositions, newVelocities, newForces []*Vector3D.Vector3D) {
 
 	var oldNumberOfParticles int64 = (*s).particleSystemData.numberOfParticles
 	var newNumberOfParticles int64 = oldNumberOfParticles + int64(len(newPositions))
@@ -131,17 +135,17 @@ func (s *SphSystemData2) addParticles(newPositions, newVelocities, newForces []*
 	}
 }
 
-func (s *SphSystemData2) positions() []*Vector3D {
+func (s *SphSystemData2) positions() []*Vector3D.Vector3D {
 
 	return (*s).particleSystemData.vectorDataList[s.particleSystemData.positionIdx]
 }
 
-func (s *SphSystemData2) velocities() []*Vector3D {
+func (s *SphSystemData2) velocities() []*Vector3D.Vector3D {
 
 	return (*s).particleSystemData.vectorDataList[s.particleSystemData.velocityIdx]
 }
 
-func (s *SphSystemData2) forces() []*Vector3D {
+func (s *SphSystemData2) forces() []*Vector3D.Vector3D {
 
 	return (*s).particleSystemData.vectorDataList[s.particleSystemData.forceIdx]
 }
@@ -157,13 +161,13 @@ func (s *SphSystemData2) pressures() []float64 {
 func (s *SphSystemData2) buildNeighborSearcher() {
 	// Use PointParallelHashGridSearcher2 by default... (now PointParallelHashGridSearcher3).
 	s.particleSystemData.neighborSearcher = NewPointParallelHashGridSearcher3(
-		kDefaultHashGridResolution,
-		kDefaultHashGridResolution,
+		constants.KDefaultHashGridResolution,
+		constants.KDefaultHashGridResolution,
 		0,
 		2*s.kernelRadius,
 	)
 
-	size := int(s.particleSystemData.neighborSearcher.resolution.x * s.particleSystemData.neighborSearcher.resolution.y)
+	size := int(s.particleSystemData.neighborSearcher.resolution.X * s.particleSystemData.neighborSearcher.resolution.Y)
 
 	for i := 0; i < size-1; i++ {
 		s.particleSystemData.neighborSearcher.startIndexTable = append(
@@ -190,7 +194,7 @@ func (s *SphSystemData2) buildNeighborLists() {
 
 	// Callback function for nearby search query. The first parameter is the
 	// index of the nearby point, and the second is the position of the point.
-	callback := func(i, j int64, v *Vector3D, origin *Vector3D, sum *float64) {
+	callback := func(i, j int64, v *Vector3D.Vector3D, origin *Vector3D.Vector3D, sum *float64) {
 		if i != j {
 			s.particleSystemData.neighborLists[i] = append(s.particleSystemData.neighborLists[i], j)
 		}
@@ -216,13 +220,13 @@ func (s *SphSystemData2) updateDensities() {
 	}
 }
 
-func (s *SphSystemData2) sumOfKernelNearby(origin *Vector3D) float64 {
+func (s *SphSystemData2) sumOfKernelNearby(origin *Vector3D.Vector3D) float64 {
 	sum := 0.0
 
 	kernel := NewSphStdKernel2(s.kernelRadius)
 
-	callback := func(i, j int64, neighborPosition *Vector3D, origin *Vector3D, sum *float64) {
-		dist := origin.distanceTo(neighborPosition)
+	callback := func(i, j int64, neighborPosition *Vector3D.Vector3D, origin *Vector3D.Vector3D, sum *float64) {
+		dist := origin.DistanceTo(neighborPosition)
 		*sum += kernel.operatorKernel(dist)
 	}
 

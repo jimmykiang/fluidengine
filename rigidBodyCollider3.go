@@ -1,13 +1,16 @@
 package main
 
-import "math"
+import (
+	"jimmykiang/fluidengine/Vector3D"
+	"math"
+)
 
 // RigidBodyCollider3 implements 3-D rigid body collider. The collider can only take
 // rigid body motion with linear and rotational velocities.
 type RigidBodyCollider3 struct {
 	surface                  *Plane3D
-	linearVelocity           *Vector3D
-	angularVelocity          *Vector3D
+	linearVelocity           *Vector3D.Vector3D
+	angularVelocity          *Vector3D.Vector3D
 	frictionCoefficient      float64
 	onUpdateCallbackCollider OnBeginUpdateCallbackCollider
 }
@@ -15,17 +18,17 @@ type RigidBodyCollider3 struct {
 // ColliderQueryResult is an internal query result structure.
 type ColliderQueryResult struct {
 	distance float64
-	point    *Vector3D
-	normal   *Vector3D
-	velocity *Vector3D
+	point    *Vector3D.Vector3D
+	normal   *Vector3D.Vector3D
+	velocity *Vector3D.Vector3D
 }
 
 func (c RigidBodyCollider3) NewColliderQueryResult() *ColliderQueryResult {
 	return &ColliderQueryResult{
 		distance: 0,
-		point:    NewVector(0, 0, 0),
-		normal:   NewVector(0, 0, 0),
-		velocity: NewVector(0, 0, 0),
+		point:    Vector3D.NewVector(0, 0, 0),
+		normal:   Vector3D.NewVector(0, 0, 0),
+		velocity: Vector3D.NewVector(0, 0, 0),
 	}
 }
 
@@ -33,8 +36,8 @@ func (c RigidBodyCollider3) NewColliderQueryResult() *ColliderQueryResult {
 func (c RigidBodyCollider3) resolveCollision(
 	radius float64,
 	restitutionCoefficient float64,
-	newPosition **Vector3D,
-	newVelocity **Vector3D,
+	newPosition **Vector3D.Vector3D,
+	newVelocity **Vector3D.Vector3D,
 ) {
 
 	colliderPoint := c.NewColliderQueryResult()
@@ -74,7 +77,7 @@ func (c RigidBodyCollider3) resolveCollision(
 
 			if relativeVelT.LengthSquared() > 0.0 {
 
-				a := c.frictionCoefficient * deltaRelativeVelN.Length()/relativeVelT.Length()
+				a := c.frictionCoefficient * deltaRelativeVelN.Length() / relativeVelT.Length()
 				frictionScale := math.Max(1-a, 0)
 				relativeVelT = relativeVelT.Multiply(frictionScale)
 
@@ -89,7 +92,7 @@ func (c RigidBodyCollider3) resolveCollision(
 }
 
 // Returns true if given point is in the opposite side of the surface.
-func (c RigidBodyCollider3) isPenetrating(colliderPoint *ColliderQueryResult, position *Vector3D, radius float64) bool {
+func (c RigidBodyCollider3) isPenetrating(colliderPoint *ColliderQueryResult, position *Vector3D.Vector3D, radius float64) bool {
 
 	// If the new candidate position of the particle is inside the volume defined by
 	// the surface OR the new distance to the surface is less than the particle's
@@ -99,7 +102,7 @@ func (c RigidBodyCollider3) isPenetrating(colliderPoint *ColliderQueryResult, po
 }
 
 // Outputs closest point's information.
-func (c RigidBodyCollider3) getClosestPoint(surface *Plane3D, queryPoint *Vector3D, result *ColliderQueryResult) {
+func (c RigidBodyCollider3) getClosestPoint(surface *Plane3D, queryPoint *Vector3D.Vector3D, result *ColliderQueryResult) {
 
 	result.distance = surface.closestDistance(queryPoint)
 	result.point = surface.closestPoint(queryPoint)
@@ -108,7 +111,7 @@ func (c RigidBodyCollider3) getClosestPoint(surface *Plane3D, queryPoint *Vector
 }
 
 // Returns the velocity of the collider at given point.
-func (c RigidBodyCollider3) velocityAt(point *Vector3D) *Vector3D {
+func (c RigidBodyCollider3) velocityAt(point *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 	r := point.Substract(c.surface.transform.translation)
 	a := c.angularVelocity.CrossProduct(r)
@@ -127,8 +130,8 @@ type OnBeginUpdateCallbackCollider func(
 func NewRigidBodyCollider3(surface *Plane3D) *RigidBodyCollider3 {
 	return &RigidBodyCollider3{
 		surface:                  surface,
-		linearVelocity:           NewVector(0, 0, 0),
-		angularVelocity:          NewVector(0, 0, 0),
+		linearVelocity:           Vector3D.NewVector(0, 0, 0),
+		angularVelocity:          Vector3D.NewVector(0, 0, 0),
 		frictionCoefficient:      0,
 		onUpdateCallbackCollider: nil,
 	}

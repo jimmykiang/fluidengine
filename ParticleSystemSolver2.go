@@ -1,5 +1,10 @@
 package main
 
+import (
+	"jimmykiang/fluidengine/Vector3D"
+	"jimmykiang/fluidengine/constants"
+)
+
 // ParticleSystemSolver2 is a basic 2-D particle system solver.
 // This struct implements basic particle system solver. It includes gravity,
 // air drag, and collision. But it does not compute particle-to-particle
@@ -15,21 +20,21 @@ type ParticleSystemSolver2 struct {
 	currentTime               float64
 	dragCoefficient           float64
 	restitutionCoefficient    float64
-	gravity                   *Vector3D
+	gravity                   *Vector3D.Vector3D
 	particleSystemData        *ParticleSystemData3
-	newPositions              []*Vector3D
-	newVelocities             []*Vector3D
+	newPositions              []*Vector3D.Vector3D
+	newVelocities             []*Vector3D.Vector3D
 	collider                  *RigidBodyCollider2
 	emitter                   *VolumeParticleEmitter2
 	wind                      *ConstantVectorField3
 }
 
 func NewParticleSystemSolver2() *ParticleSystemSolver2 {
-	newPositions := make([]*Vector3D, 0)
-	newPositions = append(newPositions, NewVector(0, 0, 0))
+	newPositions := make([]*Vector3D.Vector3D, 0)
+	newPositions = append(newPositions, Vector3D.NewVector(0, 0, 0))
 
-	newVelocities := make([]*Vector3D, 0)
-	newVelocities = append(newVelocities, NewVector(0, 0, 0))
+	newVelocities := make([]*Vector3D.Vector3D, 0)
+	newVelocities = append(newVelocities, Vector3D.NewVector(0, 0, 0))
 
 	p := &ParticleSystemSolver2{
 		currentFrame:              NewFrame(),
@@ -38,7 +43,7 @@ func NewParticleSystemSolver2() *ParticleSystemSolver2 {
 		currentTime:               0,
 		dragCoefficient:           0.0001,
 		restitutionCoefficient:    0,
-		gravity:                   NewVector(0, kGravity, 0),
+		gravity:                   Vector3D.NewVector(0, constants.KGravity, 0),
 		particleSystemData:        NewParticleSystemData3(),
 		newPositions:              newPositions,
 		newVelocities:             newVelocities,

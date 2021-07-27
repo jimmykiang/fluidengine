@@ -1,6 +1,8 @@
 package main
 
 import (
+	"jimmykiang/fluidengine/Vector3D"
+	"jimmykiang/fluidengine/constants"
 	"math"
 	"math/rand"
 )
@@ -15,8 +17,8 @@ type VolumeParticleEmitter2 struct {
 	particles                *SphSystemData2
 	bounds                   *BoundingBox2D
 	spacing                  float64
-	initialVel               *Vector3D
-	linearVel                *Vector3D
+	initialVel               *Vector3D.Vector3D
+	linearVel                *Vector3D.Vector3D
 	angularVel               float64
 	maxNumberOfParticles     float64
 	jitter                   float64
@@ -32,16 +34,16 @@ func NewVolumeParticleEmitter2(
 	implicitSurface *ImplicitSurfaceSet2,
 	maxRegion *BoundingBox2D,
 	spacing float64,
-	initialVel *Vector3D,
+	initialVel *Vector3D.Vector3D,
 ) *VolumeParticleEmitter2 {
 	return &VolumeParticleEmitter2{
 		implicitSurface:          implicitSurface,
 		bounds:                   maxRegion,
 		spacing:                  spacing,
 		initialVel:               initialVel,
-		linearVel:                NewVector(0, 0, 0),
+		linearVel:                Vector3D.NewVector(0, 0, 0),
 		angularVel:               0,
-		maxNumberOfParticles:     kMaxSize,
+		maxNumberOfParticles:     constants.KMaxSize,
 		numberOfEmittedParticles: 0,
 		jitter:                   0,
 		isOneShot:                true,
@@ -71,8 +73,8 @@ func (e *VolumeParticleEmitter2) onUpdate() {
 		return
 	}
 
-	newPositions := make([]*Vector3D, 0, 0)
-	newVelocities := make([]*Vector3D, 0, 0)
+	newPositions := make([]*Vector3D.Vector3D, 0, 0)
+	newVelocities := make([]*Vector3D.Vector3D, 0, 0)
 
 	e.emit(particles, &newPositions, &newVelocities)
 
@@ -83,7 +85,7 @@ func (e *VolumeParticleEmitter2) onUpdate() {
 	}
 }
 
-func (e *VolumeParticleEmitter2) emit(particles *SphSystemData2, newPositions, newVelocities *[]*Vector3D) {
+func (e *VolumeParticleEmitter2) emit(particles *SphSystemData2, newPositions, newVelocities *[]*Vector3D.Vector3D) {
 
 	e.implicitSurface.updateQueryEngine()
 
@@ -98,10 +100,10 @@ func (e *VolumeParticleEmitter2) emit(particles *SphSystemData2, newPositions, n
 	maxJitterDist := 0.5 * j * e.spacing
 	numNewParticles := 0.0
 
-	callback := func(points *([]*Vector3D), point *Vector3D) bool {
+	callback := func(points *([]*Vector3D.Vector3D), point *Vector3D.Vector3D) bool {
 		newAngleInRadian := (rand.Float64() - 0.5) * math.Pi * 2
 		rotationMatrix := makeRotationMatrix(newAngleInRadian)
-		randomDir := rotationMatrix.MultiplyMatrixByTuple(NewVector(0, 0, 0))
+		randomDir := rotationMatrix.MultiplyMatrixByTuple(Vector3D.NewVector(0, 0, 0))
 		offset := randomDir.Multiply(maxJitterDist)
 		candidate := point.Add(offset)
 
@@ -125,7 +127,7 @@ func (e *VolumeParticleEmitter2) emit(particles *SphSystemData2, newPositions, n
 		// todo.
 	}
 	// not needed?
-	//*newVelocities = make([]*Vector3D, len(*newPositions), len(*newPositions))
+	//*newVelocities = make([]*Vector3D.Vector3D, len(*newPositions), len(*newPositions))
 
 	// original code from: \FluidEngine\fluid-engine-dev\src\jet\volume_particle_emitter2.cpp
 	//newVelocities->parallelForEachIndex([&](size_t i) {
@@ -135,21 +137,21 @@ func (e *VolumeParticleEmitter2) emit(particles *SphSystemData2, newPositions, n
 	e.parallelForEachIndex(newVelocities, newPositions)
 }
 
-func (e *VolumeParticleEmitter2) velocityAt(point *Vector3D) *Vector3D {
+func (e *VolumeParticleEmitter2) velocityAt(point *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 	r := point.Substract(e.implicitSurface.surfaces[0].getTransform().translation)
-	a := NewVector(-r.y, r.x, 0).Multiply(e.angularVel)
+	a := Vector3D.NewVector(-r.Y, r.X, 0).Multiply(e.angularVel)
 	return a.Add(e.linearVel).Add(e.initialVel)
 }
 
-func (e *VolumeParticleEmitter2) parallelForEachIndex(newVelocities, newPositions *[]*Vector3D) {
+func (e *VolumeParticleEmitter2) parallelForEachIndex(newVelocities, newPositions *[]*Vector3D.Vector3D) {
 	for i := 0.0; i < e.numberOfEmittedParticles; i++ {
 
 		e.callback(i, newVelocities, newPositions)
 	}
 }
 
-func (e *VolumeParticleEmitter2) callback(i float64, newVelocities, newPositions *[]*Vector3D) {
+func (e *VolumeParticleEmitter2) callback(i float64, newVelocities, newPositions *[]*Vector3D.Vector3D) {
 
 	*newVelocities = append(*newVelocities, e.velocityAt((*newPositions)[int64(i)]))
 }

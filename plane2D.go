@@ -1,10 +1,12 @@
 package main
 
+import "jimmykiang/fluidengine/Vector3D"
+
 //type ImplicitSurface2 Plane2D + Sphere2D
 type ImplicitSurface2 interface {
 	isBounded() bool
 	boundingBox() *BoundingBox2D
-	signedDistance(otherPoint *Vector3D) float64
+	signedDistance(otherPoint *Vector3D.Vector3D) float64
 	getTransform() *Transform2
 }
 
@@ -14,10 +16,10 @@ type Plane2D struct {
 	surface2 *Surface2
 
 	// Plane normal.
-	normal *Vector3D
+	normal *Vector3D.Vector3D
 
 	// Point that lies on the plane.
-	point *Vector3D
+	point *Vector3D.Vector3D
 
 	// Local-to-world transform.
 	transform *Transform2
@@ -31,7 +33,7 @@ func (p *Plane2D) getTransform() *Transform2 {
 }
 
 // NewPlane2D constructs a plane that cross \p point with surface normal \p normal.
-func NewPlane2D(normal, point *Vector3D) *Plane2D {
+func NewPlane2D(normal, point *Vector3D.Vector3D) *Plane2D {
 	return &Plane2D{
 		surface2:        NewSurface2(),
 		normal:          normal,
@@ -50,11 +52,11 @@ func (p *Plane2D) isBounded() bool {
 // boundingBox returns the bounding box of this surface object.
 func (s *Plane2D) boundingBox() *BoundingBox2D {
 
-	return NewBoundingBox2D(NewVector(0, 0, 0), NewVector(0, 0, 0))
+	return NewBoundingBox2D(Vector3D.NewVector(0, 0, 0), Vector3D.NewVector(0, 0, 0))
 }
 
 // Returns the closest point from the given point otherPoint to the surface.
-func (p *Plane2D) closestPoint(otherPoint *Vector3D) *Vector3D {
+func (p *Plane2D) closestPoint(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 	// Returns the closest distance from the given point otherPoint to the
 	// point on the surface in local frame.
@@ -64,7 +66,7 @@ func (p *Plane2D) closestPoint(otherPoint *Vector3D) *Vector3D {
 	return p.transform.toWorldPointInLocal(d)
 }
 
-func (p *Plane2D) closestPointLocal(otherPoint *Vector3D) *Vector3D {
+func (p *Plane2D) closestPointLocal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 	r := otherPoint.Substract(p.point)
 	a := p.normal.DotProduct(r)
@@ -74,16 +76,16 @@ func (p *Plane2D) closestPointLocal(otherPoint *Vector3D) *Vector3D {
 
 }
 
-func (p *Plane2D) signedDistance(otherPoint *Vector3D) float64 {
+func (p *Plane2D) signedDistance(otherPoint *Vector3D.Vector3D) float64 {
 
 	x := p.closestPoint(p.transform.toLocal(otherPoint))
 	inside := p.isInside(otherPoint)
 
 	sd := 0.0
 	if inside {
-		sd = -x.distanceTo(otherPoint)
+		sd = -x.DistanceTo(otherPoint)
 	} else {
-		sd = x.distanceTo(otherPoint)
+		sd = x.DistanceTo(otherPoint)
 	}
 
 	if p.isNormalFlipped {
@@ -94,14 +96,14 @@ func (p *Plane2D) signedDistance(otherPoint *Vector3D) float64 {
 }
 
 // Returns true if otherPoint is inside the volume defined by the surface.
-func (p *Plane2D) isInside(otherPoint *Vector3D) bool {
+func (p *Plane2D) isInside(otherPoint *Vector3D.Vector3D) bool {
 
 	return p.isNormalFlipped == !p.isInsideLocal(p.transform.toLocal(otherPoint))
 }
 
 // Returns true if otherPoint is inside by given depth the volume
 // defined by the surface in local frame.
-func (p *Plane2D) isInsideLocal(otherPointLocal *Vector3D) bool {
+func (p *Plane2D) isInsideLocal(otherPointLocal *Vector3D.Vector3D) bool {
 
 	cpLocal := p.closestPointLocal(otherPointLocal)
 	normalLocal := p.closestNormalLocal(otherPointLocal)
@@ -109,7 +111,7 @@ func (p *Plane2D) isInsideLocal(otherPointLocal *Vector3D) bool {
 	return r.DotProduct(normalLocal) < 0.0
 }
 
-func (p *Plane2D) closestNormalLocal(otherPoint *Vector3D) *Vector3D {
+func (p *Plane2D) closestNormalLocal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 	return p.normal
 }
