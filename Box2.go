@@ -81,7 +81,8 @@ func (p *Box2) closestNormal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 	result := p.transform.toWorldDirection(p.closestNormalLocal(otherPoint))
 	if p.isNormalFlipped {
 
-		result.Multiply(-1)
+		//result.Multiply(-1)
+		result = result.Multiply(-1)
 	}
 
 	return result

@@ -1,11 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"jimmykiang/fluidengine/Vector3D"
 	"jimmykiang/fluidengine/constants"
 	mathHelper "jimmykiang/fluidengine/mathHelper"
 	physicsHelper "jimmykiang/fluidengine/physicsHelper"
+	"log"
 	"math"
+	"os"
 )
 
 // SphSolver2 implements a 2-D SPH solver. The main pressure solver is based on
@@ -29,6 +32,7 @@ type SphSolver2 struct {
 	speedOfSound float64
 	// Scales the max allowed time-step.
 	timeStepLimitScale float64
+	currentFrame       *Frame
 }
 
 func NewSphSolver2() *SphSolver2 {
@@ -42,9 +46,11 @@ func NewSphSolver2() *SphSolver2 {
 		pseudoViscosityCoefficient: 10,
 		speedOfSound:               100,
 		timeStepLimitScale:         1,
+		currentFrame:               NewFrame(),
 	}
 
 	s.particleSystemSolver2.setIsUsingFixedSubTimeSteps(false)
+	s.currentFrame.index = -1
 	return s
 }
 
@@ -65,11 +71,12 @@ func (s *SphSolver2) setCollider(collider *RigidBodyCollider2) {
 }
 
 func (s *SphSolver2) onUpdate(frame *Frame) {
-
-	s.onInitialize()
+	if s.currentFrame.index < 0 {
+		s.onInitialize()
+	}
 
 	s.advanceTimeStep(frame.timeIntervalInSeconds)
-
+	s.currentFrame = frame
 }
 
 // onInitialize initializes the simulator.
@@ -111,15 +118,16 @@ func (s *SphSolver2) advanceTimeStep(timeIntervalInSeconds float64) {
 	// Perform adaptive time-stepping
 	remainingTime := timeIntervalInSeconds
 
-	if remainingTime > constants.KEpsilonD {
+	//for remainingTime > constants.KEpsilonD {
 
-		numSteps := s.numberOfSubTimeSteps(remainingTime)
-		actualTimeInterval := remainingTime / float64(numSteps)
+	numSteps := s.numberOfSubTimeSteps(remainingTime)
+	actualTimeInterval := remainingTime / float64(numSteps)
 
-		s.onAdvanceTimeStep(actualTimeInterval)
-
-	}
+	s.onAdvanceTimeStep(actualTimeInterval)
+	remainingTime -= actualTimeInterval
 }
+
+//}
 
 func (s *SphSolver2) onAdvanceTimeStep(timeStepInSeconds float64) {
 
@@ -163,7 +171,6 @@ func (s *SphSolver2) beginAdvanceTimeStep(timeStepInSeconds float64) {
 }
 
 func (s *SphSolver2) onBeginAdvanceTimeStep(seconds float64) {
-
 	particles := s.particleSystemData
 	particles.buildNeighborSearcher()
 	particles.buildNeighborLists()
@@ -306,14 +313,14 @@ func (s *SphSolver2) timeIntegration(timeStepsInSeconds float64) {
 		forceMultiplyDivide := forceMultiply.Divide(mass)
 		newVelocity = velocities[i].Add(forceMultiplyDivide)
 		s.particleSystemSolver2.newVelocities[i] = newVelocity
-		s.particleSystemData.particleSystemData.vectorDataList[s.particleSystemData.particleSystemData.velocityIdx][i] = newVelocity
+		//s.particleSystemData.particleSystemData.vectorDataList[s.particleSystemData.particleSystemData.velocityIdx][i] = newVelocity
 
 		// Integrate position.
 		newPosition := s.particleSystemSolver2.newPositions[i]
 		newVelocityMultiply := newVelocity.Multiply(timeStepsInSeconds)
 		newPosition = positions[i].Add(newVelocityMultiply)
 		s.particleSystemSolver2.newPositions[i] = newPosition
-		s.particleSystemData.particleSystemData.vectorDataList[s.particleSystemData.particleSystemData.positionIdx][i] = newPosition
+		//s.particleSystemData.particleSystemData.vectorDataList[s.particleSystemData.particleSystemData.positionIdx][i] = newPosition
 	}
 }
 
@@ -329,10 +336,10 @@ func (s *SphSolver2) resolveCollision() {
 			&s.particleSystemSolver2.newPositions[i],
 			&s.particleSystemSolver2.newVelocities[i],
 		)
-		s.particleSystemData.particleSystemData.vectorDataList[s.particleSystemData.particleSystemData.velocityIdx][i] =
-			s.particleSystemSolver2.newVelocities[i]
-		s.particleSystemData.particleSystemData.vectorDataList[s.particleSystemData.particleSystemData.positionIdx][i] =
-			s.particleSystemSolver2.newPositions[i]
+		//s.particleSystemData.particleSystemData.vectorDataList[s.particleSystemData.particleSystemData.velocityIdx][i] =
+		//	s.particleSystemSolver2.newVelocities[i]
+		//s.particleSystemData.particleSystemData.vectorDataList[s.particleSystemData.particleSystemData.positionIdx][i] =
+		//	s.particleSystemSolver2.newPositions[i]
 	}
 }
 
@@ -353,7 +360,14 @@ func (s *SphSolver2) endAdvanceTimeStep(timeStepInSeconds float64) {
 
 func (s *SphSolver2) onEndAdvanceTimeStep(timeStepInSeconds float64) {
 	s.computePseudoViscosity(timeStepInSeconds)
-	//particles:=
+	numberOfParticles := s.particleSystemData.particleSystemData.numberOfParticles
+	densities := s.particleSystemData.densities()
+
+	maxDensity := 0.0
+
+	for i := 0; i < int(numberOfParticles); i++ {
+		maxDensity = math.Max(maxDensity, densities[i])
+	}
 }
 
 func (s *SphSolver2) computePseudoViscosity(timeStepInSeconds float64) {
@@ -405,4 +419,31 @@ func (s *SphSolver2) computePseudoViscosity(timeStepInSeconds float64) {
 
 		v[i] = mathHelper.Lerp(v[i], smoothedVelocities[i], factor)
 	}
+}
+
+func (p *SphSolver2) saveParticleDataXyUpdate(particles *ParticleSystemData3, frame *Frame) {
+
+	n := particles.numberOfParticles
+
+	x := make([]float64, n)
+	y := make([]float64, n)
+
+	//positions := particles.positions()
+
+	for i := int64(0); i < n; i++ {
+
+		x[i] = particles.positions()[i].X
+		y[i] = particles.positions()[i].Y
+	}
+
+	path, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	const conf = "animation/WaterDrop"
+	fileNameX := fmt.Sprintf("data.#point2,%04d,x.npy", frame.index)
+	fileNameY := fmt.Sprintf("data.#point2,%04d,y.npy", frame.index)
+
+	saveNpy(path, conf, fileNameX, x, frame)
+	saveNpy(path, conf, fileNameY, y, frame)
 }
