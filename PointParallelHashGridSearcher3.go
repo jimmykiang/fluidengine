@@ -193,7 +193,6 @@ func (s *PointParallelHashGridSearcher3) forEachNearbyPoint(
 	callback func(int64, int64, *Vector3D.Vector3D, *Vector3D.Vector3D, *float64),
 ) {
 	nearbyKeys := make([]int64, 4, 4)
-
 	s.getNearbyKeys(origin, nearbyKeys)
 
 	queryRadiusSquared := radius * radius

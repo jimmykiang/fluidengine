@@ -118,16 +118,15 @@ func (s *SphSolver2) advanceTimeStep(timeIntervalInSeconds float64) {
 	// Perform adaptive time-stepping
 	remainingTime := timeIntervalInSeconds
 
-	//for remainingTime > constants.KEpsilonD {
+	for remainingTime > constants.KEpsilonD {
 
-	numSteps := s.numberOfSubTimeSteps(remainingTime)
-	actualTimeInterval := remainingTime / float64(numSteps)
+		numSteps := s.numberOfSubTimeSteps(remainingTime)
+		actualTimeInterval := remainingTime / float64(numSteps)
 
-	s.onAdvanceTimeStep(actualTimeInterval)
-	remainingTime -= actualTimeInterval
+		s.onAdvanceTimeStep(actualTimeInterval)
+		remainingTime -= actualTimeInterval
+	}
 }
-
-//}
 
 func (s *SphSolver2) onAdvanceTimeStep(timeStepInSeconds float64) {
 
@@ -166,6 +165,7 @@ func (s *SphSolver2) beginAdvanceTimeStep(timeStepInSeconds float64) {
 	// Allocate buffers.
 	n := s.particleSystemData.particleSystemData.numberOfParticles
 	s.resize(n)
+	s.particleSystemSolver2.particleSystemData.resize(n)
 
 	s.onBeginAdvanceTimeStep(timeStepInSeconds)
 }
@@ -202,7 +202,8 @@ func (s *SphSolver2) accumulateExternalForces(timeStepInSeconds float64) {
 
 		// Wind forces.
 		relativeVel := velocities[i].Substract(s.particleSystemSolver2.wind.value)
-		force.Add(relativeVel.Multiply(s.particleSystemSolver2.dragCoefficient))
+		//force.Add(relativeVel.Multiply(-s.particleSystemSolver2.dragCoefficient))
+		force = force.Add(relativeVel.Multiply(-s.particleSystemSolver2.dragCoefficient))
 
 		forces[i] = forces[i].Add(force)
 	}
@@ -348,6 +349,8 @@ func (s *SphSolver2) endAdvanceTimeStep(timeStepInSeconds float64) {
 	n := s.particleSystemData.particleSystemData.numberOfParticles
 	positions := s.particleSystemData.positions()
 	velocities := s.particleSystemData.velocities()
+	//positions := s.particleSystemSolver2.particleSystemData.positions()
+	//velocities := s.particleSystemSolver2.particleSystemData.velocities()
 
 	for i := 0; i < int(n); i++ {
 
@@ -373,6 +376,7 @@ func (s *SphSolver2) onEndAdvanceTimeStep(timeStepInSeconds float64) {
 func (s *SphSolver2) computePseudoViscosity(timeStepInSeconds float64) {
 
 	particles := s.particleSystemData
+	//particles := s.particleSystemData.particleSystemData
 	numberOfParticles := s.particleSystemData.particleSystemData.numberOfParticles
 	x := particles.positions()
 	d := particles.densities()

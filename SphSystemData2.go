@@ -202,7 +202,7 @@ func (s *SphSystemData2) buildNeighborLists() {
 
 	for i := int64(0); i < s.particleSystemData.numberOfParticles; i++ {
 
-		println("buildNeighborLists:", i)
+		//println("buildNeighborLists:", i)
 
 		origin := points[i]
 		s.particleSystemData.neighborLists[i] = make([]int64, 0, 0)
@@ -224,7 +224,6 @@ func (s *SphSystemData2) updateDensities() {
 
 func (s *SphSystemData2) sumOfKernelNearby(origin *Vector3D.Vector3D) float64 {
 	sum := 0.0
-
 	kernel := NewSphStdKernel2(s.kernelRadius)
 
 	callback := func(i, j int64, neighborPosition *Vector3D.Vector3D, origin *Vector3D.Vector3D, sum *float64) {

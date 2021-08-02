@@ -281,6 +281,4 @@ func TestSphSolver2WaterDrop(t *testing.T) {
 		solver.onUpdate(frame)
 		solver.saveParticleDataXyUpdate(solver.particleSystemData.particleSystemData, frame)
 	}
-
-	_ = collider
 }

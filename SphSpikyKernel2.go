@@ -54,7 +54,7 @@ func (s *SphSpikyKernel2) gradient(
 	directionToCenter *Vector3D.Vector3D,
 ) *Vector3D.Vector3D {
 
-	a := s.firstDerivative(distance)
+	a := -s.firstDerivative(distance)
 	return directionToCenter.Multiply(a)
 }
 
