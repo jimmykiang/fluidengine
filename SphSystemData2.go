@@ -186,6 +186,8 @@ func (s *SphSystemData2) buildNeighborSearcher() {
 
 func (s *SphSystemData2) buildNeighborLists() {
 
+	s.particleSystemData.neighborLists = make([][]int64, 0, 0)
+
 	for i := 0; i < int(s.particleSystemData.numberOfParticles); i++ {
 		s.particleSystemData.neighborLists = append(s.particleSystemData.neighborLists, make([]int64, 0, 0))
 	}
@@ -203,7 +205,6 @@ func (s *SphSystemData2) buildNeighborLists() {
 	for i := int64(0); i < s.particleSystemData.numberOfParticles; i++ {
 
 		//println("buildNeighborLists:", i)
-
 		origin := points[i]
 		s.particleSystemData.neighborLists[i] = make([]int64, 0, 0)
 		s.particleSystemData.neighborSearcher.forEachNearbyPoint(origin, s.kernelRadius, i, nil, callback)

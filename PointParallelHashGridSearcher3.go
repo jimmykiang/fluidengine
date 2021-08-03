@@ -208,6 +208,7 @@ func (s *PointParallelHashGridSearcher3) forEachNearbyPoint(
 		}
 
 		for j := start; j < end; j++ {
+			//println("forEachNearbyPoint", "i: ", i, "j:", j)
 			direction := s.points[j].Substract(origin)
 			distanceSquared := direction.Squared()
 

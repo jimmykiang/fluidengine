@@ -2,6 +2,7 @@ package main
 
 import (
 	"jimmykiang/fluidengine/Vector3D"
+	"jimmykiang/fluidengine/mathHelper"
 )
 
 type Box2 struct {
@@ -61,7 +62,15 @@ func (p *Box2) closestPointLocal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector
 
 		return result
 	} else {
-		return nil
+		return Vector3D.NewVector(mathHelper.Clamp(
+			otherPoint.X,
+			p.bound.lowerCorner.X,
+			p.bound.upperCorner.X,
+		), mathHelper.Clamp(
+			otherPoint.Y,
+			p.bound.lowerCorner.Y,
+			p.bound.upperCorner.Y,
+		), 0)
 	}
 }
 

@@ -118,14 +118,14 @@ func (s *SphSolver2) advanceTimeStep(timeIntervalInSeconds float64) {
 	// Perform adaptive time-stepping
 	remainingTime := timeIntervalInSeconds
 
-	for remainingTime > constants.KEpsilonD {
+	//for remainingTime > constants.KEpsilonD {
 
-		numSteps := s.numberOfSubTimeSteps(remainingTime)
-		actualTimeInterval := remainingTime / float64(numSteps)
+	numSteps := s.numberOfSubTimeSteps(remainingTime)
+	actualTimeInterval := remainingTime / float64(numSteps)
 
-		s.onAdvanceTimeStep(actualTimeInterval)
-		remainingTime -= actualTimeInterval
-	}
+	s.onAdvanceTimeStep(actualTimeInterval)
+	remainingTime -= actualTimeInterval
+	//}
 }
 
 func (s *SphSolver2) onAdvanceTimeStep(timeStepInSeconds float64) {
@@ -173,6 +173,8 @@ func (s *SphSolver2) beginAdvanceTimeStep(timeStepInSeconds float64) {
 func (s *SphSolver2) onBeginAdvanceTimeStep(seconds float64) {
 	particles := s.particleSystemData
 	particles.buildNeighborSearcher()
+	// check neighborSearcher.points[] after 113 step for neighborSearcher.buildNeighborLists[][]
+	// make length of s.particleSystemData.neighborLists not go overflow (past 1560).
 	particles.buildNeighborLists()
 	particles.updateDensities()
 }

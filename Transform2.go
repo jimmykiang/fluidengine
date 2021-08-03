@@ -40,8 +40,8 @@ func (t *Transform2) toWorld(bboxInLocal *BoundingBox2D) *BoundingBox2D {
 func (t *Transform2) toWorldArgVector(pointInLocal *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 	return Vector3D.NewVector(
-		(t.cosAngle*pointInLocal.X)-(t.sinAngle*pointInLocal.Y+t.translation.X),
-		(t.sinAngle*pointInLocal.X)-(t.cosAngle*pointInLocal.Y+t.translation.Y),
+		(t.cosAngle*pointInLocal.X)-(t.sinAngle*pointInLocal.Y)+t.translation.X,
+		(t.sinAngle*pointInLocal.X)+(t.cosAngle*pointInLocal.Y)+t.translation.Y,
 		0,
 	)
 }
