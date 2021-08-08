@@ -4,6 +4,7 @@ import (
 	"jimmykiang/fluidengine/Vector3D"
 	"jimmykiang/fluidengine/constants"
 	"math"
+	"sort"
 )
 
 // PointParallelHashGridSearcher3 is a parallel version of hash grid-based 3-D point searcher.
@@ -90,7 +91,6 @@ func (s *PointParallelHashGridSearcher3) build(points []*Vector3D.Vector3D) {
 
 	// Sort indices based on hash key.
 	tempKeysResult := make([]int64, 0, 0)
-
 	uniqueTempKeys := make([]int64, 0, 0)
 	keys := make(map[int64]bool)
 
@@ -101,6 +101,8 @@ func (s *PointParallelHashGridSearcher3) build(points []*Vector3D.Vector3D) {
 		}
 	}
 
+	sort.Slice(uniqueTempKeys, func(i, j int) bool { return uniqueTempKeys[i] < uniqueTempKeys[j] })
+
 	for _, tV := range uniqueTempKeys {
 		for k, v := range tempKeys {
 			if v == tV {
@@ -108,9 +110,8 @@ func (s *PointParallelHashGridSearcher3) build(points []*Vector3D.Vector3D) {
 			}
 		}
 	}
-	copy(s.sortedIndices, tempKeysResult)
 
-	//sort.Slice(s.sortedIndices, func(i, j int) bool { return tempKeys[i] < tempKeys[i] })
+	copy(s.sortedIndices, tempKeysResult)
 
 	// Re-order point and key arrays.
 	for i := 0; i < numberOfPoints; i++ {
