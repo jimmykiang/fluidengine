@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	Vector3D "jimmykiang/fluidengine/Vector3D"
+	"jimmykiang/fluidengine/constants"
 	"log"
 	"os"
 	"sync"
@@ -22,10 +24,10 @@ type ParticleSystemSolver3 struct {
 	currentTime               float64
 	dragCoefficient           float64
 	restitutionCoefficient    float64
-	gravity                   *Vector3D
+	gravity                   *Vector3D.Vector3D
 	particleSystemData        *ParticleSystemData3
-	newPositions              []*Vector3D
-	newVelocities             []*Vector3D
+	newPositions              []*Vector3D.Vector3D
+	newVelocities             []*Vector3D.Vector3D
 	collider                  *RigidBodyCollider3
 	emitter                   *PointParticleEmitter3
 	wind                      *ConstantVectorField3
@@ -65,11 +67,11 @@ func (p *ParticleSystemSolver3) SetEmitter(emitter *PointParticleEmitter3) {
 }
 
 func NewParticleSystemSolver3() *ParticleSystemSolver3 {
-	newPositions := make([]*Vector3D, 0)
-	newPositions = append(newPositions, NewVector(0, 0, 0))
+	newPositions := make([]*Vector3D.Vector3D, 0)
+	newPositions = append(newPositions, Vector3D.NewVector(0, 0, 0))
 
-	newVelocities := make([]*Vector3D, 0)
-	newVelocities = append(newVelocities, NewVector(0, 0, 0))
+	newVelocities := make([]*Vector3D.Vector3D, 0)
+	newVelocities = append(newVelocities, Vector3D.NewVector(0, 0, 0))
 
 	p := &ParticleSystemSolver3{
 		currentFrame:              NewFrame(),
@@ -78,7 +80,7 @@ func NewParticleSystemSolver3() *ParticleSystemSolver3 {
 		currentTime:               0,
 		dragCoefficient:           0,
 		restitutionCoefficient:    0,
-		gravity:                   NewVector(0, kGravity, 0),
+		gravity:                   Vector3D.NewVector(0, constants.KGravity, 0),
 		particleSystemData:        NewParticleSystemData3(),
 		newPositions:              newPositions,
 		newVelocities:             newVelocities,
@@ -168,8 +170,8 @@ func (p *ParticleSystemSolver3) timeIntegration(timeStepsInSeconds float64) {
 
 // mtResult collects the information from the worker threads for timeIntegrationMT.
 type mtResult struct {
-	newVelocity *Vector3D
-	newPosition *Vector3D
+	newVelocity *Vector3D.Vector3D
+	newPosition *Vector3D.Vector3D
 }
 
 // multiThread timeIntegration
@@ -262,7 +264,7 @@ func (p *ParticleSystemSolver3) beginAdvanceTimeStep(timeStepInSeconds float64) 
 	// Clear forces.
 	forces := p.particleSystemData.forces()
 	for i := 0; i < len(forces); i++ {
-		forces[i] = NewVector(0, 0, 0)
+		forces[i] = Vector3D.NewVector(0, 0, 0)
 	}
 
 	// Update collider and emitter.
@@ -294,8 +296,8 @@ func (p *ParticleSystemSolver3) setWind(wind *ConstantVectorField3) {
 func (p *ParticleSystemSolver3) resize(size int64) {
 
 	for i := int64(0); i < size-1; i++ {
-		p.newPositions = append(p.newPositions, NewVector(0, 0, 0))
-		p.newVelocities = append(p.newVelocities, NewVector(0, 0, 0))
+		p.newPositions = append(p.newPositions, Vector3D.NewVector(0, 0, 0))
+		p.newVelocities = append(p.newVelocities, Vector3D.NewVector(0, 0, 0))
 	}
 
 }
@@ -311,8 +313,8 @@ func (p *ParticleSystemSolver3) saveParticleDataXyUpdate(particles *ParticleSyst
 
 	for i := int64(0); i < n; i++ {
 
-		x[i] = particles.positions()[i].x
-		y[i] = particles.positions()[i].y
+		x[i] = particles.positions()[i].X
+		y[i] = particles.positions()[i].Y
 	}
 
 	path, err := os.Getwd()
@@ -325,7 +327,9 @@ func (p *ParticleSystemSolver3) saveParticleDataXyUpdate(particles *ParticleSyst
 
 	saveNpy(path, conf, fileNameX, x, frame)
 	saveNpy(path, conf, fileNameY, y, frame)
+}
 
-	_ = n
+func (p *ParticleSystemSolver3) setIsUsingFixedSubTimeSteps(isUsing bool) {
 
+	p.isUsingFixedSubTimeSteps = isUsing
 }

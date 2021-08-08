@@ -1,5 +1,10 @@
 package main
 
+import (
+	"jimmykiang/fluidengine/Vector3D"
+	"math"
+)
+
 // Matrix is a new type defined by a double slice of float64.
 type Matrix [][]float64
 
@@ -24,9 +29,9 @@ func New3x3IdentityMatrix() Matrix {
 }
 
 // MultiplyMatrixByTuple returns the multiplication of a Matrix by a Tuple.
-func (matrix Matrix) MultiplyMatrixByTuple(vector *Vector3D) *Vector3D {
-	tupleAsMatrix := []float64{vector.x, vector.y, vector.z}
-	newTup := &Vector3D{
+func (matrix Matrix) MultiplyMatrixByTuple(vector *Vector3D.Vector3D) *Vector3D.Vector3D {
+	tupleAsMatrix := []float64{vector.X, vector.Y, vector.Z}
+	newTup := &Vector3D.Vector3D{
 		matrix.dotProducOfMatricesRowColumn(matrix.Row(0), tupleAsMatrix),
 		matrix.dotProducOfMatricesRowColumn(matrix.Row(1), tupleAsMatrix),
 		matrix.dotProducOfMatricesRowColumn(matrix.Row(2), tupleAsMatrix),
@@ -51,4 +56,21 @@ func (matrix Matrix) dotProducOfMatricesRowColumn(A, B []float64) float64 {
 // Row returns the slice from the elements of the entire row from the current matrix.
 func (matrix Matrix) Row(r int) []float64 {
 	return matrix[r]
+}
+
+// makeRotationMatrix returns a rotation matrix. (From matrix2x2.h)
+// warning Input angle should be radian.
+func makeRotationMatrix(radian float64) Matrix {
+	m := New3x3IdentityMatrix()
+	m.Set(1, 1, math.Cos(radian))
+	m.Set(1, 2, -math.Sin(radian))
+	m.Set(2, 1, math.Sin(radian))
+	m.Set(2, 2, math.Cos(radian))
+	return m
+}
+
+// Set a specific value in a matrix.
+func (matrix Matrix) Set(row, column int, val float64) float64 {
+	matrix[row][column] = val
+	return val
 }

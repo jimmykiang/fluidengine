@@ -1,6 +1,7 @@
 package main
 
 import (
+	"jimmykiang/fluidengine/Vector3D"
 	"math"
 	"math/rand"
 )
@@ -16,8 +17,8 @@ type PointParticleEmitter3 struct {
 	numberOfEmittedParticles         int
 	maxNumberOfNewParticlesPerSecond int
 	maxNumberOfParticles             uint64
-	origin                           *Vector3D
-	direction                        *Vector3D
+	origin                           *Vector3D.Vector3D
+	direction                        *Vector3D.Vector3D
 	speed                            float64
 	spreadAngleInRadians             float64
 	seed                             uint32
@@ -42,20 +43,20 @@ func NewPointParticleEmitter3() *PointParticleEmitter3 {
 		numberOfEmittedParticles:         0,
 		maxNumberOfNewParticlesPerSecond: 0,
 		maxNumberOfParticles:             18446744073709551615,
-		origin:                           NewVector(0, 0, 0),
-		direction:                        NewVector(0, 1, 0),
+		origin:                           Vector3D.NewVector(0, 0, 0),
+		direction:                        Vector3D.NewVector(0, 1, 0),
 		speed:                            1,
 		spreadAngleInRadians:             0,
 		seed:                             0,
 	}
 }
 
-func (e *PointParticleEmitter3) withOrigin(v *Vector3D) {
+func (e *PointParticleEmitter3) withOrigin(v *Vector3D.Vector3D) {
 
 	e.origin.Set(v)
 }
 
-func (e *PointParticleEmitter3) withDirection(v *Vector3D) {
+func (e *PointParticleEmitter3) withDirection(v *Vector3D.Vector3D) {
 
 	e.direction.Set(v)
 }
@@ -88,22 +89,20 @@ func (e *PointParticleEmitter3) onSetTarget(particles *ParticleSystemData3) {
 
 func (e *PointParticleEmitter3) update(currentTimeInSeconds float64, timeIntervalInSeconds float64) {
 
-
-
-	if e.particles == nil{
+	if e.particles == nil {
 		return
 	}
 
 	particles := e.particles
 
-	if e.numberOfEmittedParticles == 0{
+	if e.numberOfEmittedParticles == 0 {
 
 		e.firstFrameTimeInSeconds = currentTimeInSeconds
 	}
 
 	elapsedTimeInSeconds := currentTimeInSeconds - e.firstFrameTimeInSeconds
 
-	newMaxTotalNumberOfEmittedParticles := math.Ceil((elapsedTimeInSeconds+timeIntervalInSeconds) *
+	newMaxTotalNumberOfEmittedParticles := math.Ceil((elapsedTimeInSeconds + timeIntervalInSeconds) *
 		float64(e.maxNumberOfNewParticlesPerSecond))
 
 	newMaxTotalNumberOfEmittedParticles = math.Min(
@@ -115,10 +114,10 @@ func (e *PointParticleEmitter3) update(currentTimeInSeconds float64, timeInterva
 
 	if maxNumberOfNewParticles > 0 {
 
-		candidatePositions := make([]*Vector3D, 0)
-		candidateVelocities := make([]*Vector3D, 0)
-		newPositions := make([]*Vector3D, 0)
-		newVelocities := make([]*Vector3D, 0)
+		candidatePositions := make([]*Vector3D.Vector3D, 0)
+		candidateVelocities := make([]*Vector3D.Vector3D, 0)
+		newPositions := make([]*Vector3D.Vector3D, 0)
+		newVelocities := make([]*Vector3D.Vector3D, 0)
 
 		e.emit(&candidatePositions, &candidateVelocities, maxNumberOfNewParticles)
 
@@ -132,8 +131,8 @@ func (e *PointParticleEmitter3) update(currentTimeInSeconds float64, timeInterva
 }
 
 func (e *PointParticleEmitter3) emit(
-	newPositions *[]*Vector3D,
-	newVelocities *[]*Vector3D,
+	newPositions *[]*Vector3D.Vector3D,
+	newVelocities *[]*Vector3D.Vector3D,
 	maxNewNumberOfParticles float64,
 ) {
 
@@ -151,7 +150,7 @@ func (e *PointParticleEmitter3) emit(
 // axis  The axis of the cone.
 // angle The angle of the cone.
 // return     Sampled direction vector.
-func (e *PointParticleEmitter3) uniformSampleCone(u1 float64, u2 float64, axis *Vector3D, angle float64) *Vector3D {
+func (e *PointParticleEmitter3) uniformSampleCone(u1 float64, u2 float64, axis *Vector3D.Vector3D, angle float64) *Vector3D.Vector3D {
 
 	cosAngle_2 := math.Cos(angle / 2)
 	y := 1 - (1-cosAngle_2)*u1
@@ -159,7 +158,7 @@ func (e *PointParticleEmitter3) uniformSampleCone(u1 float64, u2 float64, axis *
 	phi := math.Pi * 2 * u2
 	x := r * math.Cos(phi)
 	z := r * math.Sin(phi)
-	ts := axis.tangential()
+	ts := axis.Tangential()
 
 	a := ts[0].Multiply(x)
 	b := axis.Multiply(y)

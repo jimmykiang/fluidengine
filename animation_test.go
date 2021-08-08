@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"jimmykiang/fluidengine/Vector3D"
 	"log"
 	"os"
 	"path/filepath"
@@ -101,11 +102,11 @@ func TestSimpleMassSpringAnimation(t *testing.T) {
 
 	anim := NewSimpleMassSpringAnimation()
 	anim.makeChain(10)
-	anim.wind = NewVector(-80.0, 190.0, 0.0)
+	anim.wind = Vector3D.NewVector(-80.0, 190.0, 0.0)
 	// Set constraint for pointIndex 13
 	// and initial fixed position for "consistency" at x = -5 (because makeChain starts with index == 0 )
 	// and avoid wipLash caused spring calculation in the simulation.
-	anim.constraints = append(anim.constraints, &Constraint{6, NewVector(-5, 20, 0), NewVector(0, 0, 0)})
+	anim.constraints = append(anim.constraints, &Constraint{6, Vector3D.NewVector(-5, 20, 0), Vector3D.NewVector(0, 0, 0)})
 	anim.exportStates(&x, &y)
 
 	frame := NewFrame()
@@ -113,7 +114,7 @@ func TestSimpleMassSpringAnimation(t *testing.T) {
 	for ; frame.index < 1000; frame.advance() {
 
 		if frame.index > 500 {
-			anim.wind = NewVector(40.0, 30.0, 0.0)
+			anim.wind = Vector3D.NewVector(40.0, 30.0, 0.0)
 		}
 		anim.onUpdate(frame)
 		anim.exportStates(&x, &y)
@@ -134,9 +135,9 @@ func TestSimpleMassSpringAnimation(t *testing.T) {
 func TestParticleSystemSolver3HalfBounce(t *testing.T) {
 
 	// Normal vector.
-	normal1 := NewVector(0, 1, 0)
+	normal1 := Vector3D.NewVector(0, 1, 0)
 	// Point vector.
-	point1 := NewVector(0, 0, 0)
+	point1 := Vector3D.NewVector(0, 0, 0)
 
 	plane := NewPlane3D(normal1, point1)
 	collider := NewRigidBodyCollider3(plane)
@@ -149,7 +150,7 @@ func TestParticleSystemSolver3HalfBounce(t *testing.T) {
 	solver.SetEmitter(emitter)
 
 	particles := solver.ParticleSystemData()
-	particles.addParticle(NewVector(0, 3, 0), NewVector(1, 0, 0), NewVector(0, 0, 0))
+	particles.addParticle(Vector3D.NewVector(0, 3, 0), Vector3D.NewVector(1, 0, 0), Vector3D.NewVector(0, 0, 0))
 
 	x := make([]float64, 1000)
 	y := make([]float64, 1000)
@@ -162,8 +163,8 @@ func TestParticleSystemSolver3HalfBounce(t *testing.T) {
 		fmt.Println("Frame index:", frame.index)
 		solver.onUpdate(frame)
 
-		x[frame.index] = particles.positions()[0].x
-		y[frame.index] = particles.positions()[0].y
+		x[frame.index] = particles.positions()[0].X
+		y[frame.index] = particles.positions()[0].Y
 
 		path, err := os.Getwd()
 		if err != nil {
@@ -181,18 +182,18 @@ func TestParticleSystemSolver3HalfBounce(t *testing.T) {
 func TestParticleSystemSolver3Update(t *testing.T) {
 
 	// Normal vector.
-	normal1 := NewVector(0, 1, 0)
+	normal1 := Vector3D.NewVector(0, 1, 0)
 	// Point vector.
-	point1 := NewVector(0, 0, 0)
+	point1 := Vector3D.NewVector(0, 0, 0)
 	plane := NewPlane3D(normal1, point1)
 	collider := NewRigidBodyCollider3(plane)
 
 	wind := NewConstantVectorField3()
-	wind.withValue(NewVector(1, 0, 0))
+	wind.withValue(Vector3D.NewVector(1, 0, 0))
 
 	emitter := NewPointParticleEmitter3()
-	emitter.withOrigin(NewVector(0, 3, 0))
-	emitter.withDirection(NewVector(-1, 1, 0))
+	emitter.withOrigin(Vector3D.NewVector(0, 3, 0))
+	emitter.withDirection(Vector3D.NewVector(-1, 1, 0))
 	emitter.withSpeed(5)
 	emitter.withSpreadAngleInDegrees(45)
 	emitter.withMaxNumberOfNewParticlesPerSecond(300)
@@ -212,7 +213,7 @@ func TestParticleSystemSolver3Update(t *testing.T) {
 
 	for ; frame.index < 500; frame.advance() {
 
-		emitter.withDirection(NewVector(ix, iy, 0))
+		emitter.withDirection(Vector3D.NewVector(ix, iy, 0))
 
 		// Some random wind
 		//if frame.index < 200 {
@@ -231,5 +232,52 @@ func TestParticleSystemSolver3Update(t *testing.T) {
 		solver.onUpdate(frame)
 
 		solver.saveParticleDataXyUpdate(solver.particleSystemData, frame)
+	}
+}
+
+func TestSphSolver2WaterDrop(t *testing.T) {
+
+	targetSpacing := 0.02
+	domain := NewBoundingBox2D(Vector3D.NewVector(0, 0, 0), Vector3D.NewVector(1, 2, 0))
+
+	// Initialize solvers.
+	solver := NewSphSolver2()
+	solver.setPseudoViscosityCoefficient(0)
+
+	particles := solver.particleSystemData
+	particles.setTargetDensity(1000)
+	particles.setTargetSpacing(targetSpacing)
+
+	// Initialize source.
+	surfaceSet := NewImplicitSurfaceSet2()
+	v1 := Vector3D.NewVector(0, 1, 0)
+	v2 := Vector3D.NewVector(0, 0.25*domain.height(), 0)
+	p := NewPlane2D(v1, v2)
+	surfaceSet.addExplicitSurface(p)
+
+	s := NewSphere2(domain.midPoint(), domain.width()*0.15)
+	surfaceSet.addExplicitSurface(s)
+
+	sourceBound := NewBoundingBox2DFromStruct(domain)
+	sourceBound.expand(-targetSpacing)
+
+	emitter := NewVolumeParticleEmitter2(surfaceSet, sourceBound, targetSpacing, Vector3D.NewVector(0, 0, 0))
+
+	solver.setEmitter(emitter)
+
+	// Initialize boundary
+	box := NewBox2(domain)
+	box.Surface2.isNormalFlipped = true
+
+	collider := NewRigidBodyCollider2(box)
+	solver.setCollider(collider)
+
+	frame := NewFrame()
+	frame.timeIntervalInSeconds = 1.0 / 60.0
+
+	for ; frame.index < 120; frame.advance() {
+		fmt.Println("Frame index:", frame.index)
+		solver.onUpdate(frame)
+		solver.saveParticleDataXyUpdate(solver.particleSystemData.particleSystemData, frame)
 	}
 }
