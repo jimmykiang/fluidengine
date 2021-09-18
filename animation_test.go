@@ -287,5 +287,8 @@ func TestSphSolver3WaterDrop(t *testing.T) {
 	targetSpacing := 0.02
 	domain := NewBoundingBox2D(Vector3D.NewVector(0, 0, 0), Vector3D.NewVector(1, 2, 1))
 
-	_, _ = targetSpacing, domain
+	// Initialize solvers.
+	solver := NewSphSolver3()
+
+	_, _, _ = targetSpacing, domain, solver
 }
