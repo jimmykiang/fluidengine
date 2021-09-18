@@ -281,3 +281,11 @@ func TestSphSolver2WaterDrop(t *testing.T) {
 		solver.saveParticleDataXyUpdate(solver.particleSystemData.particleSystemData, frame)
 	}
 }
+
+func TestSphSolver3WaterDrop(t *testing.T) {
+
+	targetSpacing := 0.02
+	domain := NewBoundingBox2D(Vector3D.NewVector(0, 0, 0), Vector3D.NewVector(1, 2, 1))
+
+	_, _ = targetSpacing, domain
+}
