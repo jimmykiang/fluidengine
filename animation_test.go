@@ -289,6 +289,14 @@ func TestSphSolver3WaterDrop(t *testing.T) {
 
 	// Initialize solvers.
 	solver := NewSphSolver3()
+	solver.setPseudoViscosityCoefficient(10.0)
 
-	_, _, _ = targetSpacing, domain, solver
+	particles := solver.particleSystemData
+	particles.setTargetDensity(1000)
+	particles.setTargetSpacing(targetSpacing)
+
+	// Initialize source.
+	//surfaceSet := NewImplicitSurfaceSet3()
+
+	_ = domain
 }

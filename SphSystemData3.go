@@ -13,7 +13,7 @@ import (
 type SphSystemData3 struct {
 	particleSystemData *ParticleSystemData3
 
-	// Target density of this particle system in kg/m^2.
+	// Target density of this particle system in kg/m^3.
 	targetDensity float64
 	// Target spacing of this particle system in meters.
 	targetSpacing float64
@@ -42,6 +42,12 @@ func NewSphSystemData3() *SphSystemData3 {
 	s.setTargetSpacing(s.targetSpacing)
 
 	return s
+}
+
+func (s *SphSystemData3) setTargetDensity(targetDensity float64) {
+
+	s.targetDensity = targetDensity
+	s.computeMass()
 }
 
 func (s *SphSystemData3) setTargetSpacing(spacing float64) {

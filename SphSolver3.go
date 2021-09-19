@@ -1,10 +1,12 @@
 package main
 
+import "math"
+
 // SphSolver3 implements a 3-D SPH solver. The main pressure solver is based on
 // equation-of-state (EOS).
 type SphSolver3 struct {
 	particleSystemData    *SphSystemData3
-	particleSystemSolver2 *ParticleSystemSolver3
+	particleSystemSolver3 *ParticleSystemSolver3
 	wind                  *ConstantVectorField3
 	// Exponent component of equation-of-state (or Tait's equation).
 	eosExponent float64
@@ -26,7 +28,7 @@ type SphSolver3 struct {
 
 func NewSphSolver3() *SphSolver3 {
 	s := &SphSolver3{
-		particleSystemSolver2:      NewParticleSystemSolver3(),
+		particleSystemSolver3:      NewParticleSystemSolver3(),
 		particleSystemData:         NewSphSystemData3(),
 		wind:                       NewConstantVectorField3(),
 		eosExponent:                7.0,
@@ -38,7 +40,12 @@ func NewSphSolver3() *SphSolver3 {
 		currentFrame:               NewFrame(),
 	}
 
-	s.particleSystemSolver2.setIsUsingFixedSubTimeSteps(false)
+	s.particleSystemSolver3.setIsUsingFixedSubTimeSteps(false)
 	s.currentFrame.index = -1
 	return s
+}
+
+func (s *SphSolver3) setPseudoViscosityCoefficient(newPseudoViscosityCoefficient float64) {
+
+	s.pseudoViscosityCoefficient = math.Max(newPseudoViscosityCoefficient, 0)
 }
