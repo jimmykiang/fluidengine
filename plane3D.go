@@ -91,3 +91,37 @@ func NewPlane3D(normal, point *Vector3D.Vector3D) *Plane3D {
 		isNormalFlipped: false,
 	}
 }
+
+// isBounded returns true if bounding box can be defined.
+func (p *Plane3D) isBounded() bool {
+
+	return false
+}
+
+// boundingBox returns the bounding box of this surface object.
+func (s *Plane3D) boundingBox() *BoundingBox3D {
+
+	return NewBoundingBox3D(Vector3D.NewVector(0, 0, 0), Vector3D.NewVector(0, 0, 0))
+}
+
+func (p *Plane3D) signedDistance(otherPoint *Vector3D.Vector3D) float64 {
+
+	x := p.closestPoint(p.transform.toLocal(otherPoint))
+	inside := p.isInside(otherPoint)
+
+	sd := 0.0
+	if inside {
+		sd = -x.DistanceTo(otherPoint)
+	} else {
+		sd = x.DistanceTo(otherPoint)
+	}
+
+	if p.isNormalFlipped {
+		sd = -sd
+	}
+	return sd
+}
+
+func (p *Plane3D) getTransform() *Transform3 {
+	return p.transform
+}
