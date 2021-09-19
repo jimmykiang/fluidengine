@@ -296,7 +296,11 @@ func TestSphSolver3WaterDrop(t *testing.T) {
 	particles.setTargetSpacing(targetSpacing)
 
 	// Initialize source.
-	//surfaceSet := NewImplicitSurfaceSet3()
+	surfaceSet := NewImplicitSurfaceSet3()
+	v1 := Vector3D.NewVector(0, 1, 0)
+	v2 := Vector3D.NewVector(0, 0.25*domain.height(), 0)
+	p := NewPlane3D(v1, v2)
+	surfaceSet.addExplicitSurface(p)
 
-	_ = domain
+	_, _ = domain, surfaceSet
 }
