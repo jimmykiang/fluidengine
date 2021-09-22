@@ -221,7 +221,7 @@ func TestParticleSystemSolver3Update(t *testing.T) {
 		//
 		//}
 		//if frame.index == 100 {
-		//	iy =0
+		//	iy = 0
 		//}
 		//if frame.index > 200 {
 		//	ix -= 0.04
@@ -232,6 +232,12 @@ func TestParticleSystemSolver3Update(t *testing.T) {
 		solver.onUpdate(frame)
 
 		solver.saveParticleDataXyUpdate(solver.particleSystemData, frame)
+
+		// unComment to enable g3n openGl visualizer @ frame 100.
+		//if frame.index == 100 {
+		//	n := solver.particleSystemData.numberOfParticles
+		//	visualizer.Visualize(solver.particleSystemData.positions(), n)
+		//}
 	}
 }
 
