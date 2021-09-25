@@ -308,5 +308,8 @@ func TestSphSolver3WaterDrop(t *testing.T) {
 	p := NewPlane3D(v1, v2)
 	surfaceSet.addExplicitSurface(p)
 
-	_, _ = domain, surfaceSet
+	s := NewSphere3(domain.midPoint(), domain.width()*0.15)
+	surfaceSet.addExplicitSurface(s)
+
+	_, _, _ = domain, surfaceSet, s
 }

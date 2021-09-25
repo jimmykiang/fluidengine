@@ -43,3 +43,45 @@ func (b *BoundingBox3D) depth() float64 {
 
 	return b.upperCorner.Z - b.lowerCorner.Z
 }
+
+// NewBoundingBox3DReset constructs a box with the highest boundaries.
+func NewBoundingBox3DReset() *BoundingBox3D {
+	lowerCorner := Vector3D.NewVector(math.MaxFloat64, math.MaxFloat64, math.MaxFloat64)
+	upperCorner := Vector3D.NewVector(-math.MaxFloat64, -math.MaxFloat64, -math.MaxFloat64)
+
+	return &BoundingBox3D{
+		lowerCorner: lowerCorner,
+		upperCorner: upperCorner,
+	}
+}
+
+// corner returns corner position. Index starts from x-first order.
+func (b *BoundingBox3D) corner(idx int) *Vector3D.Vector3D {
+
+	h := 0.5
+	offset := make([]*Vector3D.Vector3D, 0, 8)
+
+	offset = append(offset, Vector3D.NewVector(-h, -h, -h))
+	offset = append(offset, Vector3D.NewVector(h, -h, -h))
+	offset = append(offset, Vector3D.NewVector(-h, h, -h))
+	offset = append(offset, Vector3D.NewVector(h, h, -h))
+	offset = append(offset, Vector3D.NewVector(-h, -h, h))
+	offset = append(offset, Vector3D.NewVector(h, -h, h))
+	offset = append(offset, Vector3D.NewVector(-h, h, h))
+	offset = append(offset, Vector3D.NewVector(h, h, h))
+
+	a := Vector3D.NewVector(b.width(), b.height(), b.depth())
+	//c := offset[idx].Add(b.midPoint())
+	c := a.Mul(offset[idx])
+
+	result := c.Add(b.midPoint())
+	return result
+}
+
+// Returns the mid-point of this box.
+func (b *BoundingBox3D) midPoint() *Vector3D.Vector3D {
+
+	result := b.upperCorner.Add(b.lowerCorner).Divide(2)
+
+	return result
+}
