@@ -85,3 +85,24 @@ func (b *BoundingBox3D) midPoint() *Vector3D.Vector3D {
 
 	return result
 }
+
+// NewBoundingBox3DFromStruct constructs a box with other box instance.
+func NewBoundingBox3DFromStruct(other *BoundingBox2D) *BoundingBox3D {
+
+	lowerCorner := Vector3D.NewVector(other.lowerCorner.X, other.lowerCorner.Y, other.lowerCorner.Z)
+	upperCorner := Vector3D.NewVector(other.upperCorner.X, other.upperCorner.Y, other.upperCorner.Z)
+
+	return &BoundingBox3D{
+		lowerCorner: lowerCorner,
+		upperCorner: upperCorner,
+	}
+}
+
+// expand this box by given delta to all direction.
+// If the width of the box was x, expand(y) will result a box with
+// x+y+y width.
+func (b *BoundingBox3D) expand(delta float64) {
+
+	b.lowerCorner = b.lowerCorner.Substract(Vector3D.NewVector(delta, delta, delta))
+	b.upperCorner = b.upperCorner.Add(Vector3D.NewVector(delta, delta, delta))
+}

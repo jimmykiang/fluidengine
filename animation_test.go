@@ -311,5 +311,8 @@ func TestSphSolver3WaterDrop(t *testing.T) {
 	s := NewSphere3(domain.midPoint(), domain.width()*0.15)
 	surfaceSet.addExplicitSurface(s)
 
-	_, _, _ = domain, surfaceSet, s
+	sourceBound := NewBoundingBox3DFromStruct(domain)
+	sourceBound.expand(-targetSpacing)
+
+	_, _ = surfaceSet, sourceBound
 }
