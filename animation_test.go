@@ -314,5 +314,8 @@ func TestSphSolver3WaterDrop(t *testing.T) {
 	sourceBound := NewBoundingBox3DFromStruct(domain)
 	sourceBound.expand(-targetSpacing)
 
-	_, _ = surfaceSet, sourceBound
+	emitter := NewVolumeParticleEmitter3(surfaceSet, sourceBound, targetSpacing, Vector3D.NewVector(0, 0, 0))
+	//solver.setEmitter(emitter)
+
+	_, _, _ = surfaceSet, sourceBound, emitter
 }

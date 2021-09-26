@@ -49,3 +49,9 @@ func (s *SphSolver3) setPseudoViscosityCoefficient(newPseudoViscosityCoefficient
 
 	s.pseudoViscosityCoefficient = math.Max(newPseudoViscosityCoefficient, 0)
 }
+
+//func (s *SphSolver3) setEmitter(newEmitter *VolumeParticleEmitter3) {
+//
+//	s.particleSystemSolver3.emitter = newEmitter
+//	newEmitter.setTarget(s.particleSystemData)
+//}
