@@ -51,3 +51,14 @@ func NewVolumeParticleEmitter3(
 		pointsGen:                NewBccLatticePointGenerator(),
 	}
 }
+
+func (e *VolumeParticleEmitter3) setTarget(particles *SphSystemData3) {
+
+	e.particles = particles
+	e.onSetTarget(particles)
+}
+
+func (e *VolumeParticleEmitter3) onSetTarget(particles *SphSystemData3) {
+
+	// Do nothing.
+}
