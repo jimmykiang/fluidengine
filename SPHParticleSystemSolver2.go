@@ -5,15 +5,15 @@ import (
 	"jimmykiang/fluidengine/constants"
 )
 
-// ParticleSystemSolver2 is a basic 2-D particle system solver.
+// SPHParticleSystemSolver2 is a basic 2-D particle system solver.
 // This struct implements basic particle system solver. It includes gravity,
 // air drag, and collision. But it does not compute particle-to-particle
 // interaction. Thus, this solver is suitable for performing simple spray-like
 // simulations with low computational cost. This class can be further extend
 // to add more sophisticated simulations, such as SPH, to handle
 // particle-to-particle intersection.
-// SphSolver2
-type ParticleSystemSolver2 struct {
+// Used by SphSolver2
+type SPHParticleSystemSolver2 struct {
 	currentFrame              *Frame
 	isUsingFixedSubTimeSteps  bool
 	numberOfFixedSubTimeSteps int64
@@ -29,14 +29,14 @@ type ParticleSystemSolver2 struct {
 	wind                      *ConstantVectorField3
 }
 
-func NewParticleSystemSolver2() *ParticleSystemSolver2 {
+func NewSPHParticleSystemSolver2() *SPHParticleSystemSolver2 {
 	newPositions := make([]*Vector3D.Vector3D, 0)
 	newPositions = append(newPositions, Vector3D.NewVector(0, 0, 0))
 
 	newVelocities := make([]*Vector3D.Vector3D, 0)
 	newVelocities = append(newVelocities, Vector3D.NewVector(0, 0, 0))
 
-	p := &ParticleSystemSolver2{
+	p := &SPHParticleSystemSolver2{
 		currentFrame:              NewFrame(),
 		isUsingFixedSubTimeSteps:  true,
 		numberOfFixedSubTimeSteps: 1,
@@ -56,21 +56,21 @@ func NewParticleSystemSolver2() *ParticleSystemSolver2 {
 	return p
 }
 
-func (p *ParticleSystemSolver2) setIsUsingFixedSubTimeSteps(isUsing bool) {
+func (p *SPHParticleSystemSolver2) setIsUsingFixedSubTimeSteps(isUsing bool) {
 	p.isUsingFixedSubTimeSteps = isUsing
 }
 
-func (p *ParticleSystemSolver2) SetCollider(collider *RigidBodyCollider2) {
+func (p *SPHParticleSystemSolver2) SetCollider(collider *RigidBodyCollider2) {
 	p.collider = collider
 }
 
-//func (p *ParticleSystemSolver2) accumulateForces(seconds float64) {
+//func (p *SPHParticleSystemSolver2) accumulateForces(seconds float64) {
 //
 //	// Add external forces.
 //	p.accumulateExternalForces()
 //}
 //
-//func (p *ParticleSystemSolver2) accumulateExternalForces() {
+//func (p *SPHParticleSystemSolver2) accumulateExternalForces() {
 //
 //	n := p.particleSystemData.numberOfParticles
 //	forces := p.particleSystemData.forces()

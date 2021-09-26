@@ -15,7 +15,7 @@ import (
 // equation-of-state (EOS).
 type SphSolver2 struct {
 	particleSystemData    *SphSystemData2
-	particleSystemSolver2 *ParticleSystemSolver2
+	particleSystemSolver2 *SPHParticleSystemSolver2
 	wind                  *ConstantVectorField3
 	// Exponent component of equation-of-state (or Tait's equation).
 	eosExponent float64
@@ -37,7 +37,7 @@ type SphSolver2 struct {
 
 func NewSphSolver2() *SphSolver2 {
 	s := &SphSolver2{
-		particleSystemSolver2:      NewParticleSystemSolver2(),
+		particleSystemSolver2:      NewSPHParticleSystemSolver2(),
 		particleSystemData:         NewSphSystemData2(),
 		wind:                       NewConstantVectorField3(),
 		eosExponent:                7.0,
