@@ -87,7 +87,7 @@ func (b *BoundingBox3D) midPoint() *Vector3D.Vector3D {
 }
 
 // NewBoundingBox3DFromStruct constructs a box with other box instance.
-func NewBoundingBox3DFromStruct(other *BoundingBox2D) *BoundingBox3D {
+func NewBoundingBox3DFromStruct(other *BoundingBox3D) *BoundingBox3D {
 
 	lowerCorner := Vector3D.NewVector(other.lowerCorner.X, other.lowerCorner.Y, other.lowerCorner.Z)
 	upperCorner := Vector3D.NewVector(other.upperCorner.X, other.upperCorner.Y, other.upperCorner.Z)

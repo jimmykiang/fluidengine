@@ -291,7 +291,7 @@ func TestSphSolver2WaterDrop(t *testing.T) {
 func TestSphSolver3WaterDrop(t *testing.T) {
 
 	targetSpacing := 0.02
-	domain := NewBoundingBox2D(Vector3D.NewVector(0, 0, 0), Vector3D.NewVector(1, 2, 1))
+	domain := NewBoundingBox3D(Vector3D.NewVector(0, 0, 0), Vector3D.NewVector(1, 2, 1))
 
 	// Initialize solvers.
 	solver := NewSphSolver3()
@@ -317,5 +317,9 @@ func TestSphSolver3WaterDrop(t *testing.T) {
 	emitter := NewVolumeParticleEmitter3(surfaceSet, sourceBound, targetSpacing, Vector3D.NewVector(0, 0, 0))
 	solver.setEmitter(emitter)
 
-	_, _, _ = surfaceSet, sourceBound, emitter
+	// Initialize boundary
+	box := NewBox3(domain)
+	box.Surface3.isNormalFlipped = true
+
+	_, _, _, _ = surfaceSet, sourceBound, emitter, box
 }
