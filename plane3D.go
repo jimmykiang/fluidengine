@@ -17,7 +17,7 @@ type Plane3D struct {
 	isNormalFlipped bool
 }
 
-func (p Plane3D) closestPointLocal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
+func (p *Plane3D) closestPointLocal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 	r := otherPoint.Substract(p.point)
 	a := p.normal.DotProduct(r)
@@ -27,7 +27,7 @@ func (p Plane3D) closestPointLocal(otherPoint *Vector3D.Vector3D) *Vector3D.Vect
 }
 
 // Returns the normal to the closest point on the surface from the given otherPoint.
-func (p Plane3D) closestDistance(otherPoint *Vector3D.Vector3D) float64 {
+func (p *Plane3D) closestDistance(otherPoint *Vector3D.Vector3D) float64 {
 
 	// Returns the closest distance from the given point otherPoint to the
 	// point on the surface in local frame.
@@ -40,7 +40,7 @@ func (p Plane3D) closestDistance(otherPoint *Vector3D.Vector3D) float64 {
 }
 
 // Returns the closest point from the given point otherPoint to the surface.
-func (p Plane3D) closestPoint(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
+func (p *Plane3D) closestPoint(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 	// Returns the closest distance from the given point otherPoint to the
 	// point on the surface in local frame.
@@ -50,7 +50,7 @@ func (p Plane3D) closestPoint(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D 
 	return p.transform.toWorld(d)
 }
 
-func (p Plane3D) closestNormal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
+func (p *Plane3D) closestNormal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 	result := p.transform.toWorldDirection(p.closestNormalLocal(otherPoint))
 	if p.isNormalFlipped {
@@ -61,20 +61,20 @@ func (p Plane3D) closestNormal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D
 	return result
 }
 
-func (p Plane3D) closestNormalLocal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
+func (p *Plane3D) closestNormalLocal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 	return p.normal
 }
 
 // Returns true if otherPoint is inside the volume defined by the surface.
-func (p Plane3D) isInside(otherPoint *Vector3D.Vector3D) bool {
+func (p *Plane3D) isInside(otherPoint *Vector3D.Vector3D) bool {
 
 	return p.isNormalFlipped == !p.isInsideLocal(p.transform.toLocal(otherPoint))
 }
 
 // Returns true if otherPoint is inside by given depth the volume
 // defined by the surface in local frame.
-func (p Plane3D) isInsideLocal(otherPointLocal *Vector3D.Vector3D) bool {
+func (p *Plane3D) isInsideLocal(otherPointLocal *Vector3D.Vector3D) bool {
 
 	cpLocal := p.closestPointLocal(otherPointLocal)
 	normalLocal := p.closestNormalLocal(otherPointLocal)
@@ -99,7 +99,7 @@ func (p *Plane3D) isBounded() bool {
 }
 
 // boundingBox returns the bounding box of this surface object.
-func (s *Plane3D) boundingBox() *BoundingBox3D {
+func (p *Plane3D) boundingBox() *BoundingBox3D {
 
 	return NewBoundingBox3D(Vector3D.NewVector(0, 0, 0), Vector3D.NewVector(0, 0, 0))
 }
