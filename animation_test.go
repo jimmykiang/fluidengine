@@ -321,7 +321,8 @@ func TestSphSolver3WaterDrop(t *testing.T) {
 	box := NewBox3(domain)
 	box.Surface3.isNormalFlipped = true
 
-	//collider := NewRigidBodyCollider3(box)
+	collider := NewRigidBodyCollider3(box)
+	//solver.setCollider(collider)
 
-	_, _, _ = surfaceSet, sourceBound, emitter
+	_, _, _, _ = surfaceSet, sourceBound, emitter, collider
 }

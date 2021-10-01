@@ -82,9 +82,11 @@ func (p *Box2) closestPoint(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 	otherPointLocal := p.transform.toLocal(otherPoint)
 	d := p.closestPointLocal(otherPointLocal)
-	return p.transform.toWorldArgVector(d)
+	return p.transform.toWorldPointInLocal(d)
 }
 
+// closestNormal returns the normal to the closest point on the surface from the given
+// point.
 func (p *Box2) closestNormal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 	result := p.transform.toWorldDirection(p.closestNormalLocal(otherPoint))

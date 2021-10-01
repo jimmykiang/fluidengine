@@ -106,3 +106,17 @@ func (b *BoundingBox3D) expand(delta float64) {
 	b.lowerCorner = b.lowerCorner.Substract(Vector3D.NewVector(delta, delta, delta))
 	b.upperCorner = b.upperCorner.Add(Vector3D.NewVector(delta, delta, delta))
 }
+
+func (b *BoundingBox3D) contains(point *Vector3D.Vector3D) bool {
+
+	if b.upperCorner.X < point.X || b.lowerCorner.X > point.X {
+		return false
+	}
+	if b.upperCorner.Y < point.Y || b.lowerCorner.Y > point.Y {
+		return false
+	}
+	if b.upperCorner.Z < point.Z || b.lowerCorner.Z > point.Z {
+		return false
+	}
+	return true
+}
