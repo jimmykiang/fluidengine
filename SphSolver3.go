@@ -54,3 +54,35 @@ func (s *SphSolver3) setEmitter(newEmitter *VolumeParticleEmitter3) {
 	s.particleSystemSolver3.emitter = newEmitter
 	newEmitter.setTarget(s.particleSystemData)
 }
+
+func (s *SphSolver3) setCollider(collider *RigidBodyCollider3) {
+
+	s.particleSystemSolver3.SetCollider(collider)
+}
+
+func (s *SphSolver3) setViscosityCoefficient(f float64) {
+
+	s.viscosityCoefficient = f
+}
+
+func (s *SphSolver3) onUpdate(frame *Frame) {
+	if s.currentFrame.index < 0 {
+		s.onInitialize()
+	}
+
+	//s.advanceTimeStep(frame.timeIntervalInSeconds)
+	s.currentFrame = frame
+}
+
+// onInitialize initializes the simulator.
+func (s *SphSolver3) onInitialize() {
+	// When initializing the solver, update the collider and emitter state as
+	// well since they also affects the initial condition of the simulation.
+
+	s.updateEmitter(0.0)
+}
+
+func (s *SphSolver3) updateEmitter(f float64) {
+
+	s.particleSystemSolver3.emitter.onUpdate()
+}

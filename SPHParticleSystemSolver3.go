@@ -61,3 +61,7 @@ func (p *SPHParticleSystemSolver3) setIsUsingFixedSubTimeSteps(isUsing bool) {
 
 	p.isUsingFixedSubTimeSteps = isUsing
 }
+
+func (p *SPHParticleSystemSolver3) SetCollider(collider *RigidBodyCollider3) {
+	p.collider = collider
+}

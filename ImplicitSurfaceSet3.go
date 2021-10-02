@@ -1,5 +1,10 @@
 package main
 
+import (
+	"jimmykiang/fluidengine/Vector3D"
+	"math"
+)
+
 // ImplicitSurfaceSet3 represents 3-D implicit surface set.
 type ImplicitSurfaceSet3 struct {
 	ImplicitSurface3  *ImplicitSurface3
@@ -32,4 +37,48 @@ func (s *ImplicitSurfaceSet3) addExplicitSurface(surface ImplicitSurface3) {
 func (s *ImplicitSurfaceSet3) invalidateBvh() {
 
 	s.bvhInvalidated = true
+}
+
+// updateQueryEngine updates internal spatial query engine.
+func (s *ImplicitSurfaceSet3) updateQueryEngine() {
+	s.invalidateBvh()
+	s.buildBvh()
+}
+func (s *ImplicitSurfaceSet3) buildBvh() {
+	if s.bvhInvalidated {
+
+		surfs := make([]ImplicitSurface3, 0, 0)
+		bounds := make([]*BoundingBox3D, 0, 0)
+
+		for i := 0; i < len(s.surfaces); i++ {
+			if s.surfaces[i].isBounded() {
+				surfs = append(surfs, s.surfaces[i])
+				bounds = append(bounds, s.surfaces[i].boundingBox())
+			}
+		}
+		s.bvh.build(surfs, bounds)
+		s.bvhInvalidated = false
+	}
+}
+
+// isBounded returns true if bounding box can be defined.
+func (s *ImplicitSurfaceSet3) isBounded() bool {
+	// All surfaces should be bounded.
+	for _, surface := range s.surfaces {
+		if !surface.isBounded() {
+			return false
+		}
+	}
+
+	// Empty set is not bounded.
+	return len(s.surfaces) != 0
+}
+
+func (s *ImplicitSurfaceSet3) signedDistance(candidate *Vector3D.Vector3D) float64 {
+	sdf := math.MaxFloat64
+	for _, surface := range s.surfaces {
+
+		sdf = math.Min(sdf, surface.signedDistance(candidate))
+	}
+	return sdf
 }

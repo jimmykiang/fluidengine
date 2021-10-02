@@ -322,7 +322,15 @@ func TestSphSolver3WaterDrop(t *testing.T) {
 	box.Surface3.isNormalFlipped = true
 
 	collider := NewRigidBodyCollider3(box)
-	//solver.setCollider(collider)
+	solver.setCollider(collider)
 
-	_, _, _, _ = surfaceSet, sourceBound, emitter, collider
+	solver.setViscosityCoefficient(0.1)
+
+	frame := NewFrame()
+	frame.timeIntervalInSeconds = 1.0 / 60.0
+	for ; frame.index < 120; frame.advance() {
+
+		fmt.Println("Frame index:", frame.index)
+		solver.onUpdate(frame)
+	}
 }

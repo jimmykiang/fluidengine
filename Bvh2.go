@@ -6,11 +6,11 @@ type Bvh2 struct {
 	items                       []ImplicitSurface2
 	bound                       *BoundingBox2D
 	itemBounds                  []*BoundingBox2D
-	nodes                       []*Node
+	nodes                       []*Node2D
 }
 
 func NewBvh2() *Bvh2 {
-	return &Bvh2{nodes: make([]*Node, 0, 0)}
+	return &Bvh2{nodes: make([]*Node2D, 0, 0)}
 }
 
 // build the bounding volume hierarchy.
@@ -43,7 +43,7 @@ func (b *Bvh2) build(items []ImplicitSurface2, itemsBounds []*BoundingBox2D) {
 func (b *Bvh2) buildInternal(nodeIndex int, itemIndices []float64, nItems float64, currentDepth int) int {
 
 	// add a node.
-	b.nodes = append(b.nodes, NewNode())
+	b.nodes = append(b.nodes, NewNode2D())
 
 	// initialize leaf node if termination criteria met.
 	if nItems == 1 {

@@ -120,3 +120,12 @@ func (b *BoundingBox3D) contains(point *Vector3D.Vector3D) bool {
 	}
 	return true
 }
+
+func (b *BoundingBox3D) merge(other *BoundingBox3D) {
+	b.lowerCorner.X = math.Min(b.lowerCorner.X, other.lowerCorner.X)
+	b.lowerCorner.Y = math.Min(b.lowerCorner.Y, other.lowerCorner.Y)
+	b.lowerCorner.Z = math.Min(b.lowerCorner.Z, other.lowerCorner.Z)
+	b.upperCorner.X = math.Max(b.upperCorner.X, other.upperCorner.X)
+	b.upperCorner.Y = math.Max(b.upperCorner.Y, other.upperCorner.Y)
+	b.upperCorner.Z = math.Max(b.upperCorner.Z, other.upperCorner.Z)
+}
