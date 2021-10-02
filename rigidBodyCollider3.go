@@ -137,3 +137,8 @@ func NewRigidBodyCollider3(surface Surface3IF) *RigidBodyCollider3 {
 		onUpdateCallbackCollider: nil,
 	}
 }
+
+func (c *RigidBodyCollider3) update(seconds float64) {
+
+	// do nothing?
+}

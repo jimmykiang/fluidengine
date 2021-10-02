@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"jimmykiang/fluidengine/Vector3D"
 	"jimmykiang/fluidengine/constants"
 	"log"
 	"math"
@@ -153,4 +154,53 @@ func (s *SphSolver3) numberOfSubTimeSteps(timeIntervalInSeconds float64) int64 {
 	timeStepLimitByForce := constants.KTimeStepLimitByForceFactor * math.Sqrt(kernelRadius*mass/maxForceMagnitude)
 	desiredTimeStep := s.timeStepLimitScale * math.Min(timeStepLimitBySpeed, timeStepLimitByForce)
 	return int64(math.Ceil(timeIntervalInSeconds / desiredTimeStep))
+}
+
+func (s *SphSolver3) onAdvanceTimeStep(timeStepInSeconds float64) {
+
+	s.beginAdvanceTimeStep(timeStepInSeconds)
+	//s.accumulateForces(timeStepInSeconds)
+	//s.timeIntegration(timeStepInSeconds)
+	//s.resolveCollision()
+	//s.endAdvanceTimeStep(timeStepInSeconds)
+
+}
+
+func (s *SphSolver3) beginAdvanceTimeStep(timeStepInSeconds float64) {
+
+	// Clear forces.
+	forces := s.particleSystemData.forces()
+	for i := 0; i < len(forces); i++ {
+		forces[i] = Vector3D.NewVector(0, 0, 0)
+	}
+
+	// Update collider and emitter.
+	s.updateCollider(timeStepInSeconds)
+	s.particleSystemSolver3.emitter.onUpdate()
+
+	// Allocate buffers.
+	n := s.particleSystemData.particleSystemData.numberOfParticles
+	s.resize(n)
+	s.particleSystemSolver3.particleSystemData.resize(n)
+
+	s.onBeginAdvanceTimeStep(timeStepInSeconds)
+}
+
+func (s *SphSolver3) updateCollider(timeStepInSeconds float64) {
+	s.particleSystemSolver3.collider.update(timeStepInSeconds)
+}
+
+func (s *SphSolver3) resize(size int64) {
+
+	for i := int64(0); i < size-1; i++ {
+		s.particleSystemSolver3.newPositions = append(s.particleSystemSolver3.newPositions, Vector3D.NewVector(0, 0, 0))
+		s.particleSystemSolver3.newVelocities = append(s.particleSystemSolver3.newVelocities, Vector3D.NewVector(0, 0, 0))
+	}
+}
+
+func (s *SphSolver3) onBeginAdvanceTimeStep(seconds float64) {
+	particles := s.particleSystemData
+	particles.buildNeighborSearcher()
+	particles.buildNeighborLists()
+	particles.updateDensities()
 }
