@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"jimmykiang/fluidengine/constants"
 	"log"
 	"math"
 	"os"
@@ -75,7 +76,7 @@ func (s *SphSolver3) onUpdate(frame *Frame) {
 		s.onInitialize()
 	}
 
-	//s.advanceTimeStep(frame.timeIntervalInSeconds)
+	s.advanceTimeStep(frame.timeIntervalInSeconds)
 	s.currentFrame = frame
 }
 
@@ -115,4 +116,41 @@ func (p *SphSolver3) saveParticleDataXyUpdate(particles *ParticleSystemData3, fr
 
 	saveNpy(path, conf, fileNameX, x, frame)
 	saveNpy(path, conf, fileNameY, y, frame)
+}
+
+func (s *SphSolver3) advanceTimeStep(timeIntervalInSeconds float64) {
+
+	// Perform adaptive time-stepping
+	remainingTime := timeIntervalInSeconds
+
+	for remainingTime > constants.KEpsilonD {
+
+		numSteps := s.numberOfSubTimeSteps(remainingTime)
+		actualTimeInterval := remainingTime / float64(numSteps)
+
+		//println("numSteps:", numSteps)
+		s.onAdvanceTimeStep(actualTimeInterval)
+		remainingTime -= actualTimeInterval
+	}
+}
+
+func (s *SphSolver3) numberOfSubTimeSteps(timeIntervalInSeconds float64) int64 {
+
+	//particles := NewSphSystemData2()
+	particles := s.particleSystemData
+	numberOfParticles := particles.particleSystemData.numberOfParticles
+	f := particles.forces()
+
+	kernelRadius := particles.kernelRadius
+	mass := particles.particleSystemData.mass
+	maxForceMagnitude := 0.0
+
+	for i := int64(0); i < numberOfParticles; i++ {
+		maxForceMagnitude = math.Max(maxForceMagnitude, f[i].Length())
+	}
+
+	timeStepLimitBySpeed := constants.KTimeStepLimitBySpeedFactor * kernelRadius / s.speedOfSound
+	timeStepLimitByForce := constants.KTimeStepLimitByForceFactor * math.Sqrt(kernelRadius*mass/maxForceMagnitude)
+	desiredTimeStep := s.timeStepLimitScale * math.Min(timeStepLimitBySpeed, timeStepLimitByForce)
+	return int64(math.Ceil(timeIntervalInSeconds / desiredTimeStep))
 }
