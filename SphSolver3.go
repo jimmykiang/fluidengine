@@ -1,6 +1,11 @@
 package main
 
-import "math"
+import (
+	"fmt"
+	"log"
+	"math"
+	"os"
+)
 
 // SphSolver3 implements a 3-D SPH solver. The main pressure solver is based on
 // equation-of-state (EOS).
@@ -85,4 +90,29 @@ func (s *SphSolver3) onInitialize() {
 func (s *SphSolver3) updateEmitter(f float64) {
 
 	s.particleSystemSolver3.emitter.onUpdate()
+}
+
+func (p *SphSolver3) saveParticleDataXyUpdate(particles *ParticleSystemData3, frame *Frame) {
+
+	n := particles.numberOfParticles
+
+	x := make([]float64, n)
+	y := make([]float64, n)
+
+	for i := int64(0); i < n; i++ {
+
+		x[i] = particles.positions()[i].X
+		y[i] = particles.positions()[i].Y
+	}
+
+	path, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	const conf = "animation/SphSolver3WaterDrop"
+	fileNameX := fmt.Sprintf("data.#point2,%04d,x.npy", frame.index)
+	fileNameY := fmt.Sprintf("data.#point2,%04d,y.npy", frame.index)
+
+	saveNpy(path, conf, fileNameX, x, frame)
+	saveNpy(path, conf, fileNameY, y, frame)
 }

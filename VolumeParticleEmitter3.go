@@ -78,7 +78,7 @@ func (e *VolumeParticleEmitter3) onUpdate() {
 
 	e.emit(particles, &newPositions, &newVelocities)
 
-	//particles.addParticles(newPositions, newVelocities, nil)
+	particles.addParticles(newPositions, newVelocities, nil)
 
 	if e.isOneShot {
 		e.isEnabled = false

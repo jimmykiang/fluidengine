@@ -332,5 +332,7 @@ func TestSphSolver3WaterDrop(t *testing.T) {
 
 		fmt.Println("Frame index:", frame.index)
 		solver.onUpdate(frame)
+
+		solver.saveParticleDataXyUpdate(solver.particleSystemData.particleSystemData, frame)
 	}
 }

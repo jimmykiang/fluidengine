@@ -444,8 +444,6 @@ func (p *SphSolver2) saveParticleDataXyUpdate(particles *ParticleSystemData3, fr
 	x := make([]float64, n)
 	y := make([]float64, n)
 
-	//positions := particles.positions()
-
 	for i := int64(0); i < n; i++ {
 
 		x[i] = particles.positions()[i].X

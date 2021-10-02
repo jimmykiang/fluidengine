@@ -88,3 +88,52 @@ func (s *SphSystemData3) computeMass() {
 	newMass := s.targetDensity / maxNumberDensity
 	s.particleSystemData.setMass(newMass)
 }
+
+func (s *SphSystemData3) addParticles(newPositions, newVelocities, newForces []*Vector3D.Vector3D) {
+
+	var oldNumberOfParticles int64 = (*s).particleSystemData.numberOfParticles
+	var newNumberOfParticles int64 = oldNumberOfParticles + int64(len(newPositions))
+	(*s).particleSystemData.numberOfParticles = newNumberOfParticles
+
+	s.particleSystemData.resize(newNumberOfParticles)
+
+	pos := (*s).positions()
+	vel := (*s).velocities()
+	frc := (*s).forces()
+
+	if (len(newPositions)) > 0 {
+		for i := 0; i < len(newPositions); i++ {
+
+			pos[int64(i)+oldNumberOfParticles] = newPositions[i]
+		}
+	}
+
+	if (len(newVelocities)) > 0 {
+		for i := 0; i < len(newPositions); i++ {
+
+			vel[int64(i)+oldNumberOfParticles] = newVelocities[i]
+		}
+	}
+
+	if (len(newPositions)) > 0 {
+		for i := 0; i < len(newForces); i++ {
+
+			frc[int64(i)+oldNumberOfParticles] = newForces[i]
+		}
+	}
+}
+
+func (s *SphSystemData3) positions() []*Vector3D.Vector3D {
+
+	return (*s).particleSystemData.vectorDataList[s.particleSystemData.positionIdx]
+}
+
+func (s *SphSystemData3) velocities() []*Vector3D.Vector3D {
+
+	return (*s).particleSystemData.vectorDataList[s.particleSystemData.velocityIdx]
+}
+
+func (s *SphSystemData3) forces() []*Vector3D.Vector3D {
+
+	return (*s).particleSystemData.vectorDataList[s.particleSystemData.forceIdx]
+}
