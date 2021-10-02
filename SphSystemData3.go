@@ -142,6 +142,10 @@ func (s *SphSystemData3) densities() []float64 {
 	return (*s).particleSystemData.scalarDataList[s.densityIdx]
 }
 
+func (s *SphSystemData3) pressures() []float64 {
+	return (*s).particleSystemData.scalarDataList[s.pressureIdx]
+}
+
 func (s *SphSystemData3) buildNeighborSearcher() {
 	// Use PointParallelHashGridSearcher2 by default... (now PointParallelHashGridSearcher3).
 	s.particleSystemData.neighborSearcher = NewPointParallelHashGridSearcher3(

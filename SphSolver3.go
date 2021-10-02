@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"jimmykiang/fluidengine/Vector3D"
 	"jimmykiang/fluidengine/constants"
+	"jimmykiang/fluidengine/physicsHelper"
 	"log"
 	"math"
 	"os"
@@ -159,7 +160,7 @@ func (s *SphSolver3) numberOfSubTimeSteps(timeIntervalInSeconds float64) int64 {
 func (s *SphSolver3) onAdvanceTimeStep(timeStepInSeconds float64) {
 
 	s.beginAdvanceTimeStep(timeStepInSeconds)
-	//s.accumulateForces(timeStepInSeconds)
+	s.accumulateForces(timeStepInSeconds)
 	//s.timeIntegration(timeStepInSeconds)
 	//s.resolveCollision()
 	//s.endAdvanceTimeStep(timeStepInSeconds)
@@ -203,4 +204,125 @@ func (s *SphSolver3) onBeginAdvanceTimeStep(seconds float64) {
 	particles.buildNeighborSearcher()
 	particles.buildNeighborLists()
 	particles.updateDensities()
+}
+
+func (s *SphSolver3) accumulateForces(timeStepInSeconds float64) {
+
+	s.accumulateNonPressureForces(timeStepInSeconds)
+	s.accumulatePressureForce(timeStepInSeconds)
+}
+
+func (s *SphSolver3) accumulateNonPressureForces(timeStepInSeconds float64) {
+
+	s.accumulateExternalForces(timeStepInSeconds)
+	s.accumulateViscosityForce()
+}
+
+func (s *SphSolver3) accumulateViscosityForce() {
+	particles := s.particleSystemData.particleSystemData
+	numberOfParticles := s.particleSystemData.particleSystemData.numberOfParticles
+	x := s.particleSystemData.positions()
+	v := s.particleSystemData.velocities()
+	d := s.particleSystemData.densities()
+	f := s.particleSystemData.forces()
+
+	massSquared := math.Pow(s.particleSystemData.particleSystemData.mass, 2)
+
+	kernel := NewSphSpikyKernel2(s.particleSystemData.kernelRadius)
+
+	for i := int64(0); i < numberOfParticles; i++ {
+
+		neighbors := particles.neighborLists[i]
+
+		for _, j := range neighbors {
+			dist := x[i].DistanceTo(x[j])
+
+			a := s.viscosityCoefficient * massSquared * kernel.secondDerivative(dist)
+			b := v[j].Substract(v[i])
+			c := b.Divide(d[j])
+			f[i] = f[i].Add(c.Multiply(a))
+		}
+	}
+}
+
+func (s *SphSolver3) accumulatePressureForce(timeStepInSeconds float64) {
+
+	x := s.particleSystemData.positions()
+	d := s.particleSystemData.densities()
+	p := s.particleSystemData.pressures()
+	f := s.particleSystemData.forces()
+
+	s.computePressure()
+	s.accumulatePressureForceInternal(x, d, p, f)
+}
+
+func (s *SphSolver3) accumulatePressureForceInternal(
+	positions []*Vector3D.Vector3D,
+	densities []float64,
+	pressures []float64,
+	pressureForces []*Vector3D.Vector3D,
+) {
+	particles := s.particleSystemData.particleSystemData
+	numberOfParticles := particles.numberOfParticles
+	massSquared := particles.Mass() * particles.Mass()
+	kernel := NewSphSpikyKernel3(s.particleSystemData.kernelRadius)
+
+	for i := int64(0); i < numberOfParticles; i++ {
+		neighbors := particles.neighborLists[i]
+		for _, j := range neighbors {
+			dist := positions[i].DistanceTo(positions[j])
+
+			if dist > 0.0 {
+				a := positions[j].Substract(positions[i])
+				dir := a.Divide(dist)
+				b := massSquared * (pressures[i]/(densities[i]*densities[i]) +
+					pressures[j]/(densities[j]*densities[j]))
+				c := kernel.gradient(dist, dir)
+				d := c.Multiply(b)
+				pressureForces[i] = pressureForces[i].Substract(d)
+			}
+		}
+	}
+}
+
+func (s *SphSolver3) computePressure() {
+	particles := s.particleSystemData.particleSystemData
+	numberOfParticles := particles.numberOfParticles
+	d := s.particleSystemData.densities()
+	p := s.particleSystemData.pressures()
+
+	// See Murnaghan-Tait equation of state from
+	// https://en.wikipedia.org/wiki/Tait_equation
+	targetDensity := s.particleSystemData.targetDensity
+	eosScale := targetDensity * s.speedOfSound * s.speedOfSound
+
+	for i := int64(0); i < numberOfParticles; i++ {
+		p[i] = physicsHelper.ComputePressureFromEos(
+			d[i],
+			targetDensity,
+			eosScale,
+			s.eosExponent,
+			s.negativePressureScale,
+		)
+	}
+}
+
+func (s *SphSolver3) accumulateExternalForces(timeStepInSeconds float64) {
+
+	n := s.particleSystemData.particleSystemData.numberOfParticles
+	forces := s.particleSystemData.particleSystemData.forces()
+	velocities := s.particleSystemData.particleSystemData.velocities()
+	mass := s.particleSystemData.particleSystemData.Mass()
+
+	for i := 0; i < int(n); i++ {
+		// Gravity.
+		force := s.particleSystemSolver3.gravity.Multiply(mass)
+
+		// Wind forces.
+		relativeVel := velocities[i].Substract(s.particleSystemSolver3.wind.value)
+		//force.Add(relativeVel.Multiply(-s.particleSystemSolver2.dragCoefficient))
+		force = force.Add(relativeVel.Multiply(-s.particleSystemSolver3.dragCoefficient))
+
+		forces[i] = forces[i].Add(force)
+	}
 }
