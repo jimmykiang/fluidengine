@@ -33,6 +33,8 @@ func (b *BccLatticePointGenerator) callback(points *([]*Vector3D.Vector3D), v *V
 	return true
 }
 
+// forEachPoint iterates every BCC-lattice points inside \p boundingBox
+// where \p spacing is the size of the unit cell of BCC structure.
 func (b *BccLatticePointGenerator) forEachPoint(
 	boundingBox *BoundingBox3D,
 	spacing float64,
@@ -63,7 +65,7 @@ func (b *BccLatticePointGenerator) forEachPoint(
 		for j := float64(0); j*spacing+offset <= boxHeight && !shouldQuit; j++ {
 			position.Y = j*spacing + offset + boundingBox.lowerCorner.Y
 
-			for i := float64(0); i*spacing+offset <= boxWidth && !shouldQuit; i++ {
+			for i := float64(0); i*spacing+offset <= boxWidth; i++ {
 				position.X = i*spacing + offset + boundingBox.lowerCorner.X
 
 				if !callback(points, position) {

@@ -118,8 +118,6 @@ func (e *VolumeParticleEmitter3) emit(particles *SphSystemData3, newPositions, n
 		return true
 	}
 
-	_ = callback
-
 	if e.allowOverlapping || e.isOneShot {
 
 		e.pointsGen.forEachPoint(region, e.spacing, nil, callback)

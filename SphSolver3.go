@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"jimmykiang/fluidengine/Vector3D"
 	"jimmykiang/fluidengine/constants"
+	"jimmykiang/fluidengine/mathHelper"
 	"jimmykiang/fluidengine/physicsHelper"
 	"log"
 	"math"
@@ -161,10 +162,34 @@ func (s *SphSolver3) onAdvanceTimeStep(timeStepInSeconds float64) {
 
 	s.beginAdvanceTimeStep(timeStepInSeconds)
 	s.accumulateForces(timeStepInSeconds)
-	//s.timeIntegration(timeStepInSeconds)
-	//s.resolveCollision()
-	//s.endAdvanceTimeStep(timeStepInSeconds)
+	s.timeIntegration(timeStepInSeconds)
+	s.resolveCollision()
+	s.endAdvanceTimeStep(timeStepInSeconds)
+}
 
+func (s *SphSolver3) timeIntegration(timeStepsInSeconds float64) {
+
+	n := s.particleSystemData.particleSystemData.numberOfParticles
+	forces := s.particleSystemData.forces()
+	velocities := s.particleSystemData.velocities()
+	positions := s.particleSystemData.positions()
+	mass := s.particleSystemData.particleSystemData.Mass()
+
+	for i := 0; i < int(n); i++ {
+
+		// Integrate velocity first.
+		newVelocity := s.particleSystemSolver3.newVelocities[i]
+		forceMultiply := forces[i].Multiply(timeStepsInSeconds)
+		forceMultiplyDivide := forceMultiply.Divide(mass)
+		newVelocity = velocities[i].Add(forceMultiplyDivide)
+		s.particleSystemSolver3.newVelocities[i] = newVelocity
+
+		// Integrate position.
+		newPosition := s.particleSystemSolver3.newPositions[i]
+		newVelocityMultiply := newVelocity.Multiply(timeStepsInSeconds)
+		newPosition = positions[i].Add(newVelocityMultiply)
+		s.particleSystemSolver3.newPositions[i] = newPosition
+	}
 }
 
 func (s *SphSolver3) beginAdvanceTimeStep(timeStepInSeconds float64) {
@@ -324,5 +349,99 @@ func (s *SphSolver3) accumulateExternalForces(timeStepInSeconds float64) {
 		force = force.Add(relativeVel.Multiply(-s.particleSystemSolver3.dragCoefficient))
 
 		forces[i] = forces[i].Add(force)
+	}
+}
+
+func (s *SphSolver3) resolveCollision() {
+
+	numberOfParticles := s.particleSystemData.particleSystemData.numberOfParticles
+	radius := s.particleSystemData.particleSystemData.radius
+
+	for i := 0; i < int(numberOfParticles); i++ {
+		s.particleSystemSolver3.collider.resolveCollision(
+			radius,
+			s.particleSystemSolver3.restitutionCoefficient,
+			&s.particleSystemSolver3.newPositions[i],
+			&s.particleSystemSolver3.newVelocities[i],
+		)
+	}
+}
+
+func (s *SphSolver3) endAdvanceTimeStep(timeStepInSeconds float64) {
+	// Update data.
+	n := s.particleSystemData.particleSystemData.numberOfParticles
+	positions := s.particleSystemData.positions()
+	velocities := s.particleSystemData.velocities()
+
+	for i := 0; i < int(n); i++ {
+
+		positions[i] = s.particleSystemSolver3.newPositions[i]
+		velocities[i] = s.particleSystemSolver3.newVelocities[i]
+	}
+
+	s.onEndAdvanceTimeStep(timeStepInSeconds)
+}
+
+func (s *SphSolver3) onEndAdvanceTimeStep(timeStepInSeconds float64) {
+	s.computePseudoViscosity(timeStepInSeconds)
+	numberOfParticles := s.particleSystemData.particleSystemData.numberOfParticles
+	densities := s.particleSystemData.densities()
+
+	maxDensity := 0.0
+
+	for i := 0; i < int(numberOfParticles); i++ {
+		maxDensity = math.Max(maxDensity, densities[i])
+	}
+}
+
+func (s *SphSolver3) computePseudoViscosity(timeStepInSeconds float64) {
+
+	particles := s.particleSystemData
+	//particles := s.particleSystemData.particleSystemData
+	numberOfParticles := s.particleSystemData.particleSystemData.numberOfParticles
+	x := particles.positions()
+	d := particles.densities()
+	v := particles.velocities()
+	mass := particles.particleSystemData.mass
+	kernel := NewSphSpikyKernel3(s.particleSystemData.kernelRadius)
+
+	smoothedVelocities := make([]*Vector3D.Vector3D, 0, 0)
+
+	for i := 0; i < int(numberOfParticles); i++ {
+
+		weightSum := 0.0
+		smoothedVelocity := Vector3D.NewVector(0, 0, 0)
+		neighbors := s.particleSystemData.particleSystemData.neighborLists[i]
+
+		for _, j := range neighbors {
+			dist := x[i].DistanceTo(x[j])
+			wj := mass / d[j] * kernel.operatorKernel(dist)
+			weightSum += wj
+
+			a := v[j].Multiply(wj)
+			smoothedVelocity = smoothedVelocity.Add(a)
+		}
+
+		wi := mass / d[i]
+		weightSum += wi
+		a := v[i].Multiply(wi)
+		smoothedVelocity = smoothedVelocity.Add(a)
+
+		if weightSum > 0.0 {
+			smoothedVelocity = smoothedVelocity.Divide(weightSum)
+		}
+		smoothedVelocities = append(smoothedVelocities, smoothedVelocity)
+	}
+
+	factor := timeStepInSeconds * s.pseudoViscosityCoefficient
+	factor = mathHelper.Clamp(
+		factor,
+		0,
+		1,
+	)
+
+	for i := int64(0); i < numberOfParticles; i++ {
+
+		v[i] = mathHelper.Lerp(v[i], smoothedVelocities[i], factor)
 	}
 }

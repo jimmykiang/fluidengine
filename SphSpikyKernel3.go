@@ -58,3 +58,13 @@ func (s *SphSpikyKernel3) firstDerivative(distance float64) float64 {
 		return -45.0 / (constants.KPiD * s.h4) * x * x
 	}
 }
+
+func (s *SphSpikyKernel3) operatorKernel(distance float64) float64 {
+
+	if distance >= s.h {
+		return 0.0
+	} else {
+		x := 1 - distance/s.h
+		return 15.0 / (constants.KPiD * s.h3) * x * x * x
+	}
+}
