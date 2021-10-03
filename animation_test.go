@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"jimmykiang/fluidengine/Vector3D"
+	"jimmykiang/fluidengine/visualizer"
 	"log"
 	"os"
 	"path/filepath"
@@ -234,10 +235,10 @@ func TestParticleSystemSolver3Update(t *testing.T) {
 		solver.saveParticleDataXyUpdate(solver.particleSystemData, frame)
 
 		// unComment to enable g3n openGl visualizer @ frame 100.
-		//if frame.index == 100 {
-		//	n := solver.particleSystemData.numberOfParticles
-		//	visualizer.Visualize(solver.particleSystemData.positions(), n)
-		//}
+		if frame.index == 100 {
+			n := solver.particleSystemData.numberOfParticles
+			visualizer.Visualize(solver.particleSystemData.positions(), n)
+		}
 	}
 }
 

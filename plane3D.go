@@ -22,8 +22,9 @@ func (p *Plane3D) closestPointLocal(otherPoint *Vector3D.Vector3D) *Vector3D.Vec
 	r := otherPoint.Substract(p.point)
 	a := p.normal.DotProduct(r)
 	b := p.normal.Multiply(a)
-	c := b.Add(p.point)
-	return r.Substract(c)
+	c := r.Substract(b)
+	d := c.Add(p.point)
+	return d
 }
 
 // Returns the normal to the closest point on the surface from the given otherPoint.

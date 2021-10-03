@@ -12,6 +12,8 @@ type ImplicitSurfaceSet3 struct {
 	surfaces          []ImplicitSurface3
 	unboundedSurfaces []ImplicitSurface3
 	bvh               *Bvh3
+	transform         *Transform3
+	isNormalFlipped   bool
 }
 
 func NewImplicitSurfaceSet3() *ImplicitSurfaceSet3 {
@@ -20,6 +22,8 @@ func NewImplicitSurfaceSet3() *ImplicitSurfaceSet3 {
 		surfaces:          make([]ImplicitSurface3, 0),
 		unboundedSurfaces: make([]ImplicitSurface3, 0),
 		bvh:               NewBvh3(),
+		transform:         NewTransform3(),
+		isNormalFlipped:   false,
 	}
 }
 
@@ -74,11 +78,22 @@ func (s *ImplicitSurfaceSet3) isBounded() bool {
 	return len(s.surfaces) != 0
 }
 
-func (s *ImplicitSurfaceSet3) signedDistance(candidate *Vector3D.Vector3D) float64 {
+func (s *ImplicitSurfaceSet3) signedDistance(otherPoint *Vector3D.Vector3D) float64 {
+
+	t := s.transform.toLocal(otherPoint)
+	sd := s.signedDistanceLocal(t)
+
+	if s.isNormalFlipped {
+		sd = -sd
+	}
+	return sd
+}
+
+func (s *ImplicitSurfaceSet3) signedDistanceLocal(otherPoint *Vector3D.Vector3D) float64 {
 	sdf := math.MaxFloat64
 	for _, surface := range s.surfaces {
 
-		sdf = math.Min(sdf, surface.signedDistance(candidate))
+		sdf = math.Min(sdf, surface.signedDistance(otherPoint))
 	}
 	return sdf
 }
