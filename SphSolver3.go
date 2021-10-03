@@ -131,7 +131,15 @@ func (s *SphSolver3) advanceTimeStep(timeIntervalInSeconds float64) {
 		numSteps := s.numberOfSubTimeSteps(remainingTime)
 		actualTimeInterval := remainingTime / float64(numSteps)
 
-		//println("numSteps:", numSteps)
+		//resolveCollision i= 118878
+		//resolveCollision i= 118879
+		//resolveCollision i= 118880
+		//resolveCollision i= 118881
+		//numSteps: 115
+		//resolveCollision i= 0
+		//--- FAIL: TestSphSolver3WaterDrop (110.43s)
+
+		println("numSteps:", numSteps)
 		s.onAdvanceTimeStep(actualTimeInterval)
 		remainingTime -= actualTimeInterval
 	}
@@ -358,6 +366,16 @@ func (s *SphSolver3) resolveCollision() {
 	radius := s.particleSystemData.particleSystemData.radius
 
 	for i := 0; i < int(numberOfParticles); i++ {
+
+		//resolveCollision i= 118878
+		//resolveCollision i= 118879
+		//resolveCollision i= 118880
+		//resolveCollision i= 118881
+		//numSteps: 115
+		//resolveCollision i= 0
+		//--- FAIL: TestSphSolver3WaterDrop (110.43s)
+
+		println("resolveCollision i=", i)
 		s.particleSystemSolver3.collider.resolveCollision(
 			radius,
 			s.particleSystemSolver3.restitutionCoefficient,

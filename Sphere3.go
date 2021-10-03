@@ -83,10 +83,10 @@ func (s *Sphere3) isInside(otherPoint *Vector3D.Vector3D) bool {
 
 func (s *Sphere3) closestPointLocal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 
-	r := s.closestNormalLocal(otherPoint).Multiply(s.radius)
+	a := s.closestNormalLocal(otherPoint).Multiply(s.radius)
+	b := a.Add(s.center)
 
-	return r.Add(s.center)
-
+	return b
 }
 
 func (s *Sphere3) closestNormalLocal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
@@ -95,7 +95,9 @@ func (s *Sphere3) closestNormalLocal(otherPoint *Vector3D.Vector3D) *Vector3D.Ve
 		return Vector3D.NewVector(1, 0, 0)
 	} else {
 
-		return otherPoint.Substract(s.center).Normalize()
+		a := otherPoint.Substract(s.center).Normalize()
+
+		return a
 	}
 }
 

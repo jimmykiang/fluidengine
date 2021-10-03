@@ -164,7 +164,7 @@ func (e *VolumeParticleEmitter3) callback(i float64, newVelocities, newPositions
 
 func (e *VolumeParticleEmitter3) velocityAt(point *Vector3D.Vector3D) *Vector3D.Vector3D {
 
-	r := point.Substract(e.implicitSurface.surfaces[0].getTransform().translation)
+	r := point.Substract(e.implicitSurface.transform.translation)
 	a := e.angularVel.CrossProduct(r)
 
 	return a.Add(e.linearVel).Add(e.initialVel)
