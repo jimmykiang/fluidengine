@@ -96,7 +96,6 @@ func (p *Box3) closestNormal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 	result := p.transform.toWorldDirection(p.closestNormalLocal(otherPoint))
 	if p.isNormalFlipped {
 
-		//result.Multiply(-1)
 		result = result.Multiply(-1)
 	}
 
@@ -129,8 +128,35 @@ func (p *Box3) closestNormalLocal(otherPoint *Vector3D.Vector3D) *Vector3D.Vecto
 			}
 		}
 		return closestNormal
+	} else {
+		closestPoint := Vector3D.NewVector(mathHelper.Clamp(
+			otherPoint.X,
+			p.bound.lowerCorner.X,
+			p.bound.upperCorner.X,
+		), mathHelper.Clamp(
+			otherPoint.Y,
+			p.bound.lowerCorner.Y,
+			p.bound.upperCorner.Y,
+		), mathHelper.Clamp(
+			otherPoint.Z,
+			p.bound.lowerCorner.Z,
+			p.bound.upperCorner.Z,
+		))
+
+		closestPointToInputPoint := otherPoint.Substract(closestPoint)
+		closestNormal := planes[0].normal
+		maxCosineAngle := closestNormal.DotProduct(closestPointToInputPoint)
+
+		for i := 1; i < 6; i++ {
+			cosineAngle := planes[i].normal.DotProduct(closestPointToInputPoint)
+
+			if cosineAngle > maxCosineAngle {
+				closestNormal = planes[i].normal
+				maxCosineAngle = cosineAngle
+			}
+		}
+		return closestNormal
 	}
-	return nil
 }
 
 func (p *Box3) getTransform() *Transform3 {

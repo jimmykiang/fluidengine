@@ -375,7 +375,7 @@ func (s *SphSolver3) resolveCollision() {
 		//resolveCollision i= 0
 		//--- FAIL: TestSphSolver3WaterDrop (110.43s)
 
-		println("resolveCollision i=", i)
+		//println("resolveCollision i=", i)
 		s.particleSystemSolver3.collider.resolveCollision(
 			radius,
 			s.particleSystemSolver3.restitutionCoefficient,
