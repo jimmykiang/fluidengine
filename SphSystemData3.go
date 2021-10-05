@@ -195,7 +195,7 @@ func (s *SphSystemData3) buildNeighborLists() {
 		//println("buildNeighborLists:", i)
 		origin := points[i]
 		s.particleSystemData.neighborLists[i] = make([]int64, 0, 0)
-		s.particleSystemData.neighborSearcher.forEachNearbyPoint(origin, s.kernelRadius, i, nil, callback)
+		s.particleSystemData.neighborSearcher.forEachNearbyPoint3(origin, s.kernelRadius, i, nil, callback)
 	}
 }
 
@@ -211,6 +211,7 @@ func (s *SphSystemData3) updateDensities() {
 	}
 }
 
+// sumOfKernelNearby returns sum of kernel function evaluation for each nearby particle.
 func (s *SphSystemData3) sumOfKernelNearby(origin *Vector3D.Vector3D) float64 {
 	sum := 0.0
 	kernel := NewSphStdKernel3(s.kernelRadius)
@@ -220,6 +221,6 @@ func (s *SphSystemData3) sumOfKernelNearby(origin *Vector3D.Vector3D) float64 {
 		*sum += kernel.operatorKernel(dist)
 	}
 
-	s.particleSystemData.neighborSearcher.forEachNearbyPoint(origin, s.kernelRadius, 0, &sum, callback)
+	s.particleSystemData.neighborSearcher.forEachNearbyPoint3(origin, s.kernelRadius, 0, &sum, callback)
 	return sum
 }

@@ -145,8 +145,9 @@ func (v *Vector3D) Max(o *Vector3D) *Vector3D {
 
 func (v *Vector3D) IsSimilar(other *Vector3D) bool {
 
-	r := math.Abs(v.X-other.X) < constants.KEpsilonD && math.Abs(v.Y-other.Y) < constants.KEpsilonD
-
+	r := math.Abs(v.X-other.X) < constants.KEpsilonD &&
+		math.Abs(v.Y-other.Y) < constants.KEpsilonD &&
+		math.Abs(v.Z-other.Z) < constants.KEpsilonD
 	return r
 }
 

@@ -127,7 +127,6 @@ func (s *SphSolver3) advanceTimeStep(timeIntervalInSeconds float64) {
 	remainingTime := timeIntervalInSeconds
 
 	for remainingTime > constants.KEpsilonD {
-
 		numSteps := s.numberOfSubTimeSteps(remainingTime)
 		actualTimeInterval := remainingTime / float64(numSteps)
 
@@ -140,6 +139,10 @@ func (s *SphSolver3) advanceTimeStep(timeIntervalInSeconds float64) {
 		//--- FAIL: TestSphSolver3WaterDrop (110.43s)
 
 		println("numSteps:", numSteps)
+		println("constants.KEpsilonD:", constants.KEpsilonD)
+		println("actualTimeInterval:", actualTimeInterval)
+		println("remainingTime:", remainingTime)
+		println("")
 		s.onAdvanceTimeStep(actualTimeInterval)
 		remainingTime -= actualTimeInterval
 	}
@@ -158,6 +161,10 @@ func (s *SphSolver3) numberOfSubTimeSteps(timeIntervalInSeconds float64) int64 {
 
 	for i := int64(0); i < numberOfParticles; i++ {
 		maxForceMagnitude = math.Max(maxForceMagnitude, f[i].Length())
+
+		//if math.IsNaN(maxForceMagnitude) {
+		//	println("nan at:", i)
+		//}
 	}
 
 	timeStepLimitBySpeed := constants.KTimeStepLimitBySpeedFactor * kernelRadius / s.speedOfSound
@@ -261,7 +268,7 @@ func (s *SphSolver3) accumulateViscosityForce() {
 
 	massSquared := math.Pow(s.particleSystemData.particleSystemData.mass, 2)
 
-	kernel := NewSphSpikyKernel2(s.particleSystemData.kernelRadius)
+	kernel := NewSphSpikyKernel3(s.particleSystemData.kernelRadius)
 
 	for i := int64(0); i < numberOfParticles; i++ {
 
