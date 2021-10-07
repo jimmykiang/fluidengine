@@ -205,6 +205,12 @@ func (s *SphSystemData3) updateDensities() {
 	d := s.densities()
 	m := s.particleSystemData.Mass()
 
+	//density idx 0 	3691 1000
+	//3692 should be 999.9999
+
+	//pressure idx 1 	3691 x
+	//3692 should be empty
+
 	for i := int64(0); i < s.particleSystemData.numberOfParticles; i++ {
 		sum := s.sumOfKernelNearby(p[i])
 		d[i] = m * sum

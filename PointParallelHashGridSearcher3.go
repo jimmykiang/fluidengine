@@ -345,7 +345,7 @@ func (s *PointParallelHashGridSearcher3) getNearbyKeys3(
 	nearbyBucketIndices := make([]*Vector3D.Vector3D, 0, 0)
 
 	for i := 0; i < 8; i++ {
-		nearbyBucketIndices = append(nearbyBucketIndices, Vector3D.NewVector(originIndex.X, originIndex.Y, 0))
+		nearbyBucketIndices = append(nearbyBucketIndices, Vector3D.NewVector(originIndex.X, originIndex.Y, originIndex.Z))
 	}
 
 	if ((originIndex.X + 0.5) * s.gridSpacing) <= position.X {
