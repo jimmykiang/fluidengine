@@ -129,15 +129,6 @@ func (s *SphSolver3) advanceTimeStep(timeIntervalInSeconds float64) {
 	for remainingTime > constants.KEpsilonD {
 		numSteps := s.numberOfSubTimeSteps(remainingTime)
 		actualTimeInterval := remainingTime / float64(numSteps)
-
-		//resolveCollision i= 118878
-		//resolveCollision i= 118879
-		//resolveCollision i= 118880
-		//resolveCollision i= 118881
-		//numSteps: 115
-		//resolveCollision i= 0
-		//--- FAIL: TestSphSolver3WaterDrop (110.43s)
-
 		println("numSteps:", numSteps)
 		println("constants.KEpsilonD:", constants.KEpsilonD)
 		println("actualTimeInterval:", actualTimeInterval)
@@ -374,15 +365,6 @@ func (s *SphSolver3) resolveCollision() {
 
 	for i := 0; i < int(numberOfParticles); i++ {
 
-		//resolveCollision i= 118878
-		//resolveCollision i= 118879
-		//resolveCollision i= 118880
-		//resolveCollision i= 118881
-		//numSteps: 115
-		//resolveCollision i= 0
-		//--- FAIL: TestSphSolver3WaterDrop (110.43s)
-
-		//println("resolveCollision i=", i)
 		s.particleSystemSolver3.collider.resolveCollision(
 			radius,
 			s.particleSystemSolver3.restitutionCoefficient,

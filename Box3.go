@@ -36,13 +36,13 @@ func (p *Box3) closestPoint(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 
 func (p *Box3) closestPointLocal(otherPoint *Vector3D.Vector3D) *Vector3D.Vector3D {
 	if p.bound.contains(otherPoint) {
-		planes := make([]*Plane2D, 0, 6)
-		planes = append(planes, NewPlane2D(Vector3D.NewVector(1, 0, 0), p.bound.upperCorner))
-		planes = append(planes, NewPlane2D(Vector3D.NewVector(0, 1, 0), p.bound.upperCorner))
-		planes = append(planes, NewPlane2D(Vector3D.NewVector(0, 0, 1), p.bound.upperCorner))
-		planes = append(planes, NewPlane2D(Vector3D.NewVector(-1, 0, 0), p.bound.lowerCorner))
-		planes = append(planes, NewPlane2D(Vector3D.NewVector(0, -1, 0), p.bound.lowerCorner))
-		planes = append(planes, NewPlane2D(Vector3D.NewVector(0, 0, -1), p.bound.lowerCorner))
+		planes := make([]*Plane3D, 0, 6)
+		planes = append(planes, NewPlane3D(Vector3D.NewVector(1, 0, 0), p.bound.upperCorner))
+		planes = append(planes, NewPlane3D(Vector3D.NewVector(0, 1, 0), p.bound.upperCorner))
+		planes = append(planes, NewPlane3D(Vector3D.NewVector(0, 0, 1), p.bound.upperCorner))
+		planes = append(planes, NewPlane3D(Vector3D.NewVector(-1, 0, 0), p.bound.lowerCorner))
+		planes = append(planes, NewPlane3D(Vector3D.NewVector(0, -1, 0), p.bound.lowerCorner))
+		planes = append(planes, NewPlane3D(Vector3D.NewVector(0, 0, -1), p.bound.lowerCorner))
 
 		result := planes[0].closestPoint(otherPoint)
 		distanceSquared := result.DistanceSquaredTo(otherPoint)

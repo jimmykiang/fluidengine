@@ -147,7 +147,7 @@ func (s *SphSystemData3) pressures() []float64 {
 }
 
 func (s *SphSystemData3) buildNeighborSearcher() {
-	// Use PointParallelHashGridSearcher2 by default... (now PointParallelHashGridSearcher3).
+	// Use PointParallelHashGridSearcher3 by default...
 	s.particleSystemData.neighborSearcher = NewPointParallelHashGridSearcher3(
 		constants.KDefaultHashGridResolution,
 		constants.KDefaultHashGridResolution,
@@ -155,7 +155,9 @@ func (s *SphSystemData3) buildNeighborSearcher() {
 		2*s.kernelRadius,
 	)
 
-	size := int(s.particleSystemData.neighborSearcher.resolution.X * s.particleSystemData.neighborSearcher.resolution.Y)
+	size := int(s.particleSystemData.neighborSearcher.resolution.X *
+		s.particleSystemData.neighborSearcher.resolution.Y *
+		s.particleSystemData.neighborSearcher.resolution.Z)
 
 	for i := 0; i < size-1; i++ {
 		s.particleSystemData.neighborSearcher.startIndexTable = append(
@@ -204,12 +206,6 @@ func (s *SphSystemData3) updateDensities() {
 	p := s.positions()
 	d := s.densities()
 	m := s.particleSystemData.Mass()
-
-	//density idx 0 	3691 1000
-	//3692 should be 999.9999
-
-	//pressure idx 1 	3691 x
-	//3692 should be empty
 
 	for i := int64(0); i < s.particleSystemData.numberOfParticles; i++ {
 		sum := s.sumOfKernelNearby(p[i])
