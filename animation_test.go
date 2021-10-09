@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"jimmykiang/fluidengine/Vector3D"
+	"jimmykiang/fluidengine/visualizer"
 	"log"
 	"os"
 	"path/filepath"
@@ -221,7 +222,7 @@ func TestParticleSystemSolver3Update(t *testing.T) {
 		//
 		//}
 		//if frame.index == 100 {
-		//	iy =0
+		//	iy = 0
 		//}
 		//if frame.index > 200 {
 		//	ix -= 0.04
@@ -232,6 +233,12 @@ func TestParticleSystemSolver3Update(t *testing.T) {
 		solver.onUpdate(frame)
 
 		solver.saveParticleDataXyUpdate(solver.particleSystemData, frame)
+
+		// unComment to enable g3n openGl visualizer @ frame 100.
+		if frame.index == 100 {
+			n := solver.particleSystemData.numberOfParticles
+			visualizer.Visualize(solver.particleSystemData.positions(), n)
+		}
 	}
 }
 
@@ -278,6 +285,55 @@ func TestSphSolver2WaterDrop(t *testing.T) {
 	for ; frame.index < 120; frame.advance() {
 		fmt.Println("Frame index:", frame.index)
 		solver.onUpdate(frame)
+		solver.saveParticleDataXyUpdate(solver.particleSystemData.particleSystemData, frame)
+	}
+}
+
+func TestSphSolver3WaterDrop(t *testing.T) {
+
+	targetSpacing := 0.02
+	domain := NewBoundingBox3D(Vector3D.NewVector(0, 0, 0), Vector3D.NewVector(1, 2, 1))
+
+	// Initialize solvers.
+	solver := NewSphSolver3()
+	solver.setPseudoViscosityCoefficient(10.0)
+
+	particles := solver.particleSystemData
+	particles.setTargetDensity(1000)
+	particles.setTargetSpacing(targetSpacing)
+
+	// Initialize source.
+	surfaceSet := NewImplicitSurfaceSet3()
+	v1 := Vector3D.NewVector(0, 1, 0)
+	v2 := Vector3D.NewVector(0, 0.25*domain.height(), 0)
+	p := NewPlane3D(v1, v2)
+	surfaceSet.addExplicitSurface(p)
+
+	s := NewSphere3(domain.midPoint(), domain.width()*0.15)
+	surfaceSet.addExplicitSurface(s)
+
+	sourceBound := NewBoundingBox3DFromStruct(domain)
+	sourceBound.expand(-targetSpacing)
+
+	emitter := NewVolumeParticleEmitter3(surfaceSet, sourceBound, targetSpacing, Vector3D.NewVector(0, 0, 0))
+	solver.setEmitter(emitter)
+
+	// Initialize boundary
+	box := NewBox3(domain)
+	box.Surface3.isNormalFlipped = true
+
+	collider := NewRigidBodyCollider3(box)
+	solver.setCollider(collider)
+
+	solver.setViscosityCoefficient(0.1)
+
+	frame := NewFrame()
+	frame.timeIntervalInSeconds = 1.0 / 60.0
+	for ; frame.index < 120; frame.advance() {
+
+		fmt.Println("Frame index:", frame.index)
+		solver.onUpdate(frame)
+
 		solver.saveParticleDataXyUpdate(solver.particleSystemData.particleSystemData, frame)
 	}
 }

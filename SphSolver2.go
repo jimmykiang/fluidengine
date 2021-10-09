@@ -15,7 +15,7 @@ import (
 // equation-of-state (EOS).
 type SphSolver2 struct {
 	particleSystemData    *SphSystemData2
-	particleSystemSolver2 *ParticleSystemSolver2
+	particleSystemSolver2 *SPHParticleSystemSolver2
 	wind                  *ConstantVectorField3
 	// Exponent component of equation-of-state (or Tait's equation).
 	eosExponent float64
@@ -37,7 +37,7 @@ type SphSolver2 struct {
 
 func NewSphSolver2() *SphSolver2 {
 	s := &SphSolver2{
-		particleSystemSolver2:      NewParticleSystemSolver2(),
+		particleSystemSolver2:      NewSPHParticleSystemSolver2(),
 		particleSystemData:         NewSphSystemData2(),
 		wind:                       NewConstantVectorField3(),
 		eosExponent:                7.0,
@@ -174,17 +174,6 @@ func (s *SphSolver2) beginAdvanceTimeStep(timeStepInSeconds float64) {
 func (s *SphSolver2) onBeginAdvanceTimeStep(seconds float64) {
 	particles := s.particleSystemData
 	particles.buildNeighborSearcher()
-	// frame.index == 1
-	// numSteps == 24
-	// iExternal == 1108
-	// buildNeighborLists forEachNearbyPoint == 1108
-	// neighborSearcher.keys[] == 1417
-	// forEachNearbyPoint i==3 && j==1561
-	// neighborSearcher.startIndexTable[836] should not be 9223372036854775807...
-	// neighborSearcher.startIndexTable[836] == 1417 from original code.
-	// neighborSearcher.endIndexTable[836] should not be 9223372036854775807...
-	// neighborSearcher.endIndexTable[836] == 1418 from original code.
-	// make length of s.particleSystemData.neighborLists not go overflow (past 1560).
 	particles.buildNeighborLists()
 	particles.updateDensities()
 }
@@ -443,8 +432,6 @@ func (p *SphSolver2) saveParticleDataXyUpdate(particles *ParticleSystemData3, fr
 
 	x := make([]float64, n)
 	y := make([]float64, n)
-
-	//positions := particles.positions()
 
 	for i := int64(0); i < n; i++ {
 

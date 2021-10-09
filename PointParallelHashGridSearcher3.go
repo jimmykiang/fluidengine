@@ -53,12 +53,12 @@ func (s *PointParallelHashGridSearcher3) build(points []*Vector3D.Vector3D) {
 	}
 
 	s.startIndexTable = make([]int64, 0, 0)
-	for i := 0; i < int(s.resolution.X*s.resolution.Y); i++ {
+	for i := 0; i < int(s.resolution.X*s.resolution.Y*s.resolution.Z); i++ {
 		s.startIndexTable = append(s.startIndexTable, math.MaxInt64)
 	}
 
 	s.endIndexTable = make([]int64, 0, 0)
-	for i := 0; i < int(s.resolution.X*s.resolution.Y); i++ {
+	for i := 0; i < int(s.resolution.X*s.resolution.Y*s.resolution.Z); i++ {
 		s.endIndexTable = append(s.endIndexTable, math.MaxInt64)
 	}
 
@@ -86,7 +86,7 @@ func (s *PointParallelHashGridSearcher3) build(points []*Vector3D.Vector3D) {
 	for i := 0; i < numberOfPoints; i++ {
 		s.sortedIndices[i] = int64(i)
 		s.points[i] = points[i]
-		tempKeys[i] = s.getHashKeyFromPosition(points[i])
+		tempKeys[i] = s.getHashKeyFromPosition3(points[i])
 	}
 
 	// Sort indices based on hash key.
@@ -163,6 +163,13 @@ func (s *PointParallelHashGridSearcher3) getHashKeyFromPosition(position *Vector
 	return s.getHashKeyFromBucketIndex(bucketIndex)
 }
 
+func (s *PointParallelHashGridSearcher3) getHashKeyFromPosition3(position *Vector3D.Vector3D) int64 {
+	bucketIndex := s.getBucketIndex3(position)
+
+	return s.getHashKeyFromBucketIndex3(bucketIndex)
+}
+
+// getBucketIndex (2D) gets the bucket index from a point.
 func (s *PointParallelHashGridSearcher3) getBucketIndex(position *Vector3D.Vector3D) *Vector3D.Vector3D {
 	bucketIndex := Vector3D.NewVector(0, 0, 0)
 	bucketIndex.X = math.Floor(position.X / s.gridSpacing)
@@ -170,6 +177,16 @@ func (s *PointParallelHashGridSearcher3) getBucketIndex(position *Vector3D.Vecto
 	return bucketIndex
 }
 
+// getBucketIndex3 (3D) gets the bucket index from a point.
+func (s *PointParallelHashGridSearcher3) getBucketIndex3(position *Vector3D.Vector3D) *Vector3D.Vector3D {
+	bucketIndex := Vector3D.NewVector(0, 0, 0)
+	bucketIndex.X = math.Floor(position.X / s.gridSpacing)
+	bucketIndex.Y = math.Floor(position.Y / s.gridSpacing)
+	bucketIndex.Z = math.Floor(position.Z / s.gridSpacing)
+	return bucketIndex
+}
+
+// getHashKeyFromBucketIndex2 (2D) returns the hash value for given 3-D bucket index.
 func (s *PointParallelHashGridSearcher3) getHashKeyFromBucketIndex(bucketIndex *Vector3D.Vector3D) int64 {
 
 	wrappedIndex := Vector3D.NewVector(bucketIndex.X, bucketIndex.Y, 0)
@@ -186,6 +203,30 @@ func (s *PointParallelHashGridSearcher3) getHashKeyFromBucketIndex(bucketIndex *
 	return int64(wrappedIndex.Y*s.resolution.X + wrappedIndex.X)
 }
 
+// getHashKeyFromBucketIndex3 (3D) returns the hash value for given 3-D bucket index.
+func (s *PointParallelHashGridSearcher3) getHashKeyFromBucketIndex3(bucketIndex *Vector3D.Vector3D) int64 {
+
+	wrappedIndex := Vector3D.NewVector(bucketIndex.X, bucketIndex.Y, bucketIndex.Z)
+	wrappedIndex.X = float64(int64(bucketIndex.X) % int64(s.resolution.X))
+	wrappedIndex.Y = float64(int64(bucketIndex.Y) % int64(s.resolution.Y))
+	wrappedIndex.Z = float64(int64(bucketIndex.Z) % int64(s.resolution.Z))
+
+	if wrappedIndex.X < 0 {
+		wrappedIndex.X += s.resolution.X
+	}
+	if wrappedIndex.Y < 0 {
+		wrappedIndex.Y += s.resolution.Y
+	}
+	if wrappedIndex.Z < 0 {
+		wrappedIndex.Z += s.resolution.Z
+	}
+
+	return int64((wrappedIndex.Z*s.resolution.Y+wrappedIndex.Y)*
+		s.resolution.X + wrappedIndex.X)
+}
+
+// forEachNearbyPoint (2D) invokes the callback function for each nearby point around the origin
+// within given radius.
 func (s *PointParallelHashGridSearcher3) forEachNearbyPoint(
 	origin *Vector3D.Vector3D,
 	radius float64,
@@ -214,6 +255,46 @@ func (s *PointParallelHashGridSearcher3) forEachNearbyPoint(
 			distanceSquared := direction.Squared()
 
 			if distanceSquared <= queryRadiusSquared {
+				callback(int64(iExternal), s.sortedIndices[j], s.points[j], origin, sum)
+			}
+		}
+	}
+}
+
+// forEachNearbyPoint3 (3D) invokes the callback function for each nearby point around the origin
+// within given radius.
+func (s *PointParallelHashGridSearcher3) forEachNearbyPoint3(
+	origin *Vector3D.Vector3D,
+	radius float64,
+	iExternal int64,
+	sum *float64,
+	callback func(int64, int64, *Vector3D.Vector3D, *Vector3D.Vector3D, *float64),
+) {
+	nearbyKeys := make([]int64, 8, 8)
+	s.getNearbyKeys3(origin, nearbyKeys)
+
+	queryRadiusSquared := radius * radius
+
+	for i := 0; i < 8; i++ {
+		nearbyKey := nearbyKeys[i]
+		start := s.startIndexTable[nearbyKey]
+		end := s.endIndexTable[nearbyKey]
+
+		// Empty bucket -- continue to next bucket.
+		if start == math.MaxInt64 {
+			continue
+		}
+		for j := start; j < end; j++ {
+			direction := s.points[j].Substract(origin)
+			distanceSquared := direction.Squared()
+
+			if distanceSquared <= queryRadiusSquared {
+				distance := 0.0
+				if distanceSquared > 0 {
+					distance = math.Sqrt(distanceSquared)
+					direction = direction.Divide(distance)
+				}
+
 				callback(int64(iExternal), s.sortedIndices[j], s.points[j], origin, sum)
 			}
 		}
@@ -250,5 +331,58 @@ func (s *PointParallelHashGridSearcher3) getNearbyKeys(
 
 	for i := 0; i < 4; i++ {
 		nearbyKeys[i] = s.getHashKeyFromBucketIndex(nearbyBucketIndices[i])
+	}
+}
+
+func (s *PointParallelHashGridSearcher3) getNearbyKeys3(
+	position *Vector3D.Vector3D,
+	nearbyKeys []int64,
+) {
+	originIndex := s.getBucketIndex3(position)
+
+	nearbyBucketIndices := make([]*Vector3D.Vector3D, 0, 0)
+
+	for i := 0; i < 8; i++ {
+		nearbyBucketIndices = append(nearbyBucketIndices, Vector3D.NewVector(originIndex.X, originIndex.Y, originIndex.Z))
+	}
+
+	if ((originIndex.X + 0.5) * s.gridSpacing) <= position.X {
+		nearbyBucketIndices[4].X += 1
+		nearbyBucketIndices[5].X += 1
+		nearbyBucketIndices[6].X += 1
+		nearbyBucketIndices[7].X += 1
+	} else {
+		nearbyBucketIndices[4].X -= 1
+		nearbyBucketIndices[5].X -= 1
+		nearbyBucketIndices[6].X -= 1
+		nearbyBucketIndices[7].X -= 1
+	}
+
+	if ((originIndex.Y + 0.5) * s.gridSpacing) <= position.Y {
+		nearbyBucketIndices[2].Y += 1
+		nearbyBucketIndices[3].Y += 1
+		nearbyBucketIndices[6].Y += 1
+		nearbyBucketIndices[7].Y += 1
+	} else {
+		nearbyBucketIndices[2].Y -= 1
+		nearbyBucketIndices[3].Y -= 1
+		nearbyBucketIndices[6].Y -= 1
+		nearbyBucketIndices[7].Y -= 1
+	}
+
+	if ((originIndex.Z + 0.5) * s.gridSpacing) <= position.Z {
+		nearbyBucketIndices[1].Z += 1
+		nearbyBucketIndices[3].Z += 1
+		nearbyBucketIndices[5].Z += 1
+		nearbyBucketIndices[7].Z += 1
+	} else {
+		nearbyBucketIndices[1].Z -= 1
+		nearbyBucketIndices[3].Z -= 1
+		nearbyBucketIndices[5].Z -= 1
+		nearbyBucketIndices[7].Z -= 1
+	}
+
+	for i := 0; i < 8; i++ {
+		nearbyKeys[i] = s.getHashKeyFromBucketIndex3(nearbyBucketIndices[i])
 	}
 }

@@ -315,6 +315,12 @@ func (p *ParticleSystemSolver3) saveParticleDataXyUpdate(particles *ParticleSyst
 
 		x[i] = particles.positions()[i].X
 		y[i] = particles.positions()[i].Y
+
+		//if frame.index == 100 {
+		//	z := make([]float64, n)
+		//	z[i] = particles.positions()[i].Z
+		//	visualizer.Visualize(particles.positions(), n)
+		//}
 	}
 
 	path, err := os.Getwd()

@@ -38,3 +38,21 @@ func NewTransform3() *Transform3 {
 		inverseOrientationMat3: New3x3IdentityMatrix(),
 	}
 }
+
+// toWorld transforms a bounding box in local space to the world coordinate.
+func (t *Transform3) toWorldBoundingBox(bboxInLocal *BoundingBox3D) *BoundingBox3D {
+
+	bboxInWorld := NewBoundingBox3DReset()
+
+	for i := 0; i < 8; i++ {
+		cornerInWorld := t.toWorld(bboxInLocal.corner(i))
+
+		a := bboxInWorld.lowerCorner.Min(cornerInWorld)
+		bboxInWorld.lowerCorner = Vector3D.NewVector(a.X, a.Y, 0)
+
+		b := bboxInWorld.upperCorner.Max(cornerInWorld)
+		bboxInWorld.upperCorner = Vector3D.NewVector(b.X, b.Y, 0)
+	}
+
+	return bboxInWorld
+}
