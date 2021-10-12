@@ -286,6 +286,12 @@ func TestSphSolver2WaterDrop(t *testing.T) {
 		fmt.Println("Frame index:", frame.index)
 		solver.onUpdate(frame)
 		solver.saveParticleDataXyUpdate(solver.particleSystemData.particleSystemData, frame)
+
+		// unComment to enable g3n openGl visualizer @ frame 100.
+		//if frame.index == 40 {
+		//	n := solver.particleSystemData.particleSystemData.numberOfParticles
+		//	visualizer.Visualize(solver.particleSystemData.positions(), n)
+		//}
 	}
 }
 
