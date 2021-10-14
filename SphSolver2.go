@@ -144,10 +144,12 @@ func (s *SphSolver2) updateCollider(timeStepInSeconds float64) {
 }
 
 func (s *SphSolver2) resize(size int64) {
+	if len(s.particleSystemSolver2.newPositions) < int(size) {
 
-	for i := int64(0); i < size-1; i++ {
-		s.particleSystemSolver2.newPositions = append(s.particleSystemSolver2.newPositions, Vector3D.NewVector(0, 0, 0))
-		s.particleSystemSolver2.newVelocities = append(s.particleSystemSolver2.newVelocities, Vector3D.NewVector(0, 0, 0))
+		for i := int64(0); i < size-1; i++ {
+			s.particleSystemSolver2.newPositions = append(s.particleSystemSolver2.newPositions, Vector3D.NewVector(0, 0, 0))
+			s.particleSystemSolver2.newVelocities = append(s.particleSystemSolver2.newVelocities, Vector3D.NewVector(0, 0, 0))
+		}
 	}
 }
 
