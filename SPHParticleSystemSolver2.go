@@ -21,12 +21,11 @@ type SPHParticleSystemSolver2 struct {
 	dragCoefficient           float64
 	restitutionCoefficient    float64
 	gravity                   *Vector3D.Vector3D
-	//particleSystemData        *ParticleSystemData3
-	newPositions  []*Vector3D.Vector3D
-	newVelocities []*Vector3D.Vector3D
-	collider      *RigidBodyCollider2
-	emitter       *VolumeParticleEmitter2
-	wind          *ConstantVectorField3
+	newPositions              []*Vector3D.Vector3D
+	newVelocities             []*Vector3D.Vector3D
+	collider                  *RigidBodyCollider2
+	emitter                   *VolumeParticleEmitter2
+	wind                      *ConstantVectorField3
 }
 
 func NewSPHParticleSystemSolver2() *SPHParticleSystemSolver2 {
@@ -44,12 +43,11 @@ func NewSPHParticleSystemSolver2() *SPHParticleSystemSolver2 {
 		dragCoefficient:           0.0001,
 		restitutionCoefficient:    0,
 		gravity:                   Vector3D.NewVector(0, constants.KGravity, 0),
-		//particleSystemData:        NewParticleSystemData3(),
-		newPositions:  newPositions,
-		newVelocities: newVelocities,
-		collider:      nil,
-		emitter:       nil,
-		wind:          NewConstantVectorField3(),
+		newPositions:              newPositions,
+		newVelocities:             newVelocities,
+		collider:                  nil,
+		emitter:                   nil,
+		wind:                      NewConstantVectorField3(),
 	}
 
 	p.currentFrame.index = -1

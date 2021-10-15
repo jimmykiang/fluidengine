@@ -22,7 +22,6 @@ type SPHParticleSystemSolver3 struct {
 	dragCoefficient           float64
 	restitutionCoefficient    float64
 	gravity                   *Vector3D.Vector3D
-	particleSystemData        *ParticleSystemData3
 	newPositions              []*Vector3D.Vector3D
 	newVelocities             []*Vector3D.Vector3D
 	collider                  *RigidBodyCollider3
@@ -45,7 +44,6 @@ func NewSPHParticleSystemSolver3() *SPHParticleSystemSolver3 {
 		dragCoefficient:           0,
 		restitutionCoefficient:    0,
 		gravity:                   Vector3D.NewVector(0, constants.KGravity, 0),
-		particleSystemData:        NewParticleSystemData3(),
 		newPositions:              newPositions,
 		newVelocities:             newVelocities,
 		collider:                  nil,

@@ -213,7 +213,6 @@ func (s *SphSolver3) beginAdvanceTimeStep(timeStepInSeconds float64) {
 	// Allocate buffers.
 	n := s.particleSystemData.particleSystemData.numberOfParticles
 	s.resize(n)
-	s.particleSystemSolver3.particleSystemData.resize(n)
 
 	s.onBeginAdvanceTimeStep(timeStepInSeconds)
 }
